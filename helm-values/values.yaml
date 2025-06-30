@@ -44,13 +44,31 @@ configmap:
       s3Region="us-west-1"
       s3StorageClass="STANDARD"
       secretKey="objectstorage"
+    rabbitmq.conf: |
+      # config
+    010_init_a_default_rabbitmq_user.sh: |
+      #!/usr/bin/env bash
+      echo "Adding Liferay Client User ${RABBITMQ_CLIENT_USERNAME} to RabbitMQ"
+      rabbitmqctl add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}"
+      rabbitmqctl set_permissions -p "/" "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*"
+    RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
+    RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:
   x-full-auto-scaling:
   - name: LIFERAY_DISABLE_TRIAL_LICENSE
     value: "true"
   - name: LIFERAY_JPDA_ENABLED
     value: "true"
-
+  - name: RABBITMQ_CLIENT_USERNAME
+    valueFrom:
+      configMapKeyRef:
+        name: liferay-default
+        key: RABBITMQ_CLIENT_USERNAME
+  - name: RABBITMQ_CLIENT_PASSWORD
+    valueFrom:
+      configMapKeyRef:
+        name: liferay-default
+        key: RABBITMQ_CLIENT_PASSWORD
 customVolumeMounts:
   x-full-auto-scaling:
   - mountPath: /etc/liferay/mount/files/deploy/license.xml
@@ -236,6 +254,121 @@ dependencies:
       - mountPath: /bitnami/minio/data
         name: liferay-objectstorage-pvc
         subPath: data-dir
+  rabbitmq:
+    source: statefulset
+    statefulset:
+      env:
+      - name: RABBITMQ_USERNAME
+        value: rabbitmq
+      - name: RABBITMQ_PASSWORD
+        value: rabbitmq
+      - name: RABBITMQ_CLIENT_USERNAME
+        valueFrom:
+          configMapKeyRef:
+            name: liferay-default
+            key: RABBITMQ_CLIENT_USERNAME
+      - name: RABBITMQ_CLIENT_PASSWORD
+        valueFrom:
+          configMapKeyRef:
+            name: liferay-default
+            key: RABBITMQ_CLIENT_PASSWORD
+      image:
+        repository: bitnami/rabbitmq
+        tag: 4.1.1-debian-12-r2
+        pullPolicy: IfNotPresent
+      livenessProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_local_alarms
+        initialDelaySeconds: 120
+      podSecurityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+      ports:
+      - containerPort: 5672
+        name: amqp
+        protocol: TCP
+      - containerPort: 15672
+        name: management
+        protocol: TCP
+      readinessProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_running
+        initialDelaySeconds: 10
+      replicaCount: 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+        seLinuxOptions: {}
+        seccompProfile:
+          type: RuntimeDefault
+      service:
+        ports:
+        - name: amqp
+          port: 5672
+          protocol: TCP
+          targetPort: amqp
+        - name: management
+          port: 15672
+          protocol: TCP
+          targetPort: management
+        type: ClusterIP
+      startupProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_port_connectivity
+        initialDelaySeconds: 10
+        failureThreshold: 30
+      storage: 1Gi
+      updateStrategy:
+        type: RollingUpdate
+      volumeClaimTemplates:
+      - metadata:
+          name: liferay-rabbitmq-pvc
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+      volumeMounts:
+      - mountPath: /bitnami/rabbitmq
+        name: liferay-rabbitmq-pvc
+        subPath: rabbitmq/data
+      - mountPath: /opt/bitnami/rabbitmq/etc/rabbitmq
+        name: liferay-rabbitmq-pvc
+        subPath: rabbitmq/config
+      - mountPath: /opt/bitnami/rabbitmq/.rabbitmq
+        name: liferay-rabbitmq-pvc
+        subPath: rabbitmq/home
+      - mountPath: /opt/bitnami/rabbitmq/var/lib/rabbitmq
+        name: liferay-rabbitmq-pvc
+        subPath: system/var
+      - mountPath: /tmp
+        name: liferay-rabbitmq-pvc
+        subPath: system/tmp
+      - mountPath: /docker-entrypoint-initdb.d/010_init_a_default_rabbitmq_user.sh
+        name: liferay-configmap
+        subPath: 010_init_a_default_rabbitmq_user.sh
+      volumes:
+      - configMap:
+          name: liferay-default
+          optional: true
+        name: liferay-configmap
   search:
     source: statefulset
     statefulset:

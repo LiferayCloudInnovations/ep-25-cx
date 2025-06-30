@@ -6,7 +6,7 @@ x-invoke: |
     --namespace liferay-system \
     --set "image.tag=7.4.13.nightly" \
     --set-file "configmap.data.license\.xml=${HOME}/projects/liferay-helm-values/default/license.xml" \
-    -f "${HOME}/projects/ep-25-cx/helm-values/values.yaml"
+    -f values.yaml
 
 # How to purge this chart (including data):
 x-delete: |

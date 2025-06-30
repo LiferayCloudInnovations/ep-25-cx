@@ -1,0 +1,372 @@
+# How to execute this helm chart:
+x-invoke: |
+  helm upgrade -i liferay \
+    oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default \
+    --create-namespace \
+    --namespace liferay-system \
+    --set "image.tag=7.4.13.nightly" \
+    --set-file "configmap.data.license\.xml=${HOME}/projects/liferay-helm-values/default/license.xml" \
+    -f "${HOME}/projects/ep-25-cx/helm-values/values.yaml"
+
+# How to purge this chart (including data):
+x-delete: |
+    helm -n liferay-system delete liferay ; k -n liferay-system delete pvc --selector "app.kubernetes.io/name=liferay-default"
+
+x-notes: |
+    # none
+
+configmap:
+  data:
+    000_troubleshooting.sh: |
+      #!/usr/bin/env bash
+
+      echo "=========ENV=========="
+      env | sort
+    com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config: |
+      authenticationEnabled=B"false"
+      clusterName="liferay_cluster"
+      httpSSLEnabled=B"false"
+      indexNamePrefix="liferay-"
+      networkHostAddresses=["http://liferay-default-search:9200"]
+      operationMode="REMOTE"
+      password="search"
+      username="search"
+    com.liferay.portal.store.s3.configuration.S3StoreConfiguration.config: |
+      accessKey="objectstorage"
+      bucketName="objectstorage"
+      connectionProtocol="HTTP"
+      connectionTimeout=i"20"
+      corePoolSize=i"3"
+      httpClientMaxConnections=i"10"
+      httpClientMaxErrorRetry=i"3"
+      s3Endpoint="liferay-default-objectstorage:9000"
+      s3PathStyle=B"true"
+      s3Region="us-west-1"
+      s3StorageClass="STANDARD"
+      secretKey="objectstorage"
+customEnv:
+  x-full-auto-scaling:
+  - name: LIFERAY_DISABLE_TRIAL_LICENSE
+    value: "true"
+  - name: LIFERAY_JPDA_ENABLED
+    value: "true"
+
+customVolumeMounts:
+  x-full-auto-scaling:
+  - mountPath: /etc/liferay/mount/files/deploy/license.xml
+    name: liferay-configmap
+    subPath: license.xml
+  - mountPath: /mnt/local
+    name: mount-local
+  - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config
+    name: liferay-configmap
+    subPath: com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config
+  - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.store.s3.configuration.S3StoreConfiguration.config
+    name: liferay-configmap
+    subPath: com.liferay.portal.store.s3.configuration.S3StoreConfiguration.config
+  - mountPath: /opt/liferay/osgi/war
+    name: liferay-persistent-volume
+    subPath: osgi/war
+  - mountPath: /usr/local/liferay/scripts/pre-configure/999_troubleshooting.sh
+    name: liferay-configmap
+    subPath: 000_troubleshooting.sh
+customVolumes:
+  x-full-auto-scaling:
+  - hostPath:
+      path: /mnt/local
+    name: mount-local
+dependencies:
+  database:
+    portalProperties: |
+      jdbc.default.driverClassName=org.postgresql.Driver
+      jdbc.default.url=jdbc:postgresql://liferay-default-database:5432/lportal?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false
+      jdbc.default.username=database
+      jdbc.default.password=database
+    source: statefulset
+    statefulset:
+      env:
+      - name: POSTGRES_DB
+        value: lportal
+      - name: POSTGRES_PASSWORD
+        value: database
+      - name: POSTGRES_USER
+        value: database
+      - name: PGUSER
+        value: database
+      - name: PGDATA
+        value: /var/lib/postgresql/data/db
+      image:
+        pullPolicy: IfNotPresent
+        repository: postgres
+        tag: 16
+      livenessProbe:
+        exec:
+          command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      ports:
+      - containerPort: 5432
+        name: database
+        protocol: TCP
+      readinessProbe:
+        exec:
+          command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      replicaCount: 1
+      service:
+        ports:
+        - name: database
+          port: 5432
+          protocol: TCP
+          targetPort: database
+        type: ClusterIP
+      startupProbe:
+        exec:
+          command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      storage: 1Gi
+      updateStrategy:
+        type: RollingUpdate
+      volumeClaimTemplates:
+      - metadata:
+          name: liferay-database-pvc
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+      volumeMounts:
+      - mountPath: /var/lib/postgresql/data
+        name: liferay-database-pvc
+  objectstorage:
+    portalProperties: |
+      dl.store.impl=com.liferay.portal.store.s3.S3Store
+    source: statefulset
+    statefulset:
+      env:
+      - name: MINIO_API_PORT_NUMBER
+        value: "9000"
+      - name: MINIO_CONSOLE_PORT_NUMBER
+        value: "9001"
+      - name: MINIO_DEFAULT_BUCKETS
+        value: objectstorage
+      - name: MINIO_REGION
+        value: us-west-1
+      - name: MINIO_ROOT_PASSWORD
+        value: objectstorage
+      - name: MINIO_ROOT_USER
+        value: objectstorage
+      - name: MINIO_SCHEME
+        value: http
+      - name: MINIO_SERVER_URL
+        value: http://localhost:9000
+      image:
+        repository: bitnami/minio
+        tag: 2024
+        pullPolicy: IfNotPresent
+      livenessProbe:
+        httpGet:
+          path: /minio/health/live
+          port: api
+          scheme: HTTP
+      podSecurityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+      ports:
+      - containerPort: 9000
+        name: api
+        protocol: TCP
+      - containerPort: 9001
+        name: console
+        protocol: TCP
+      readinessProbe:
+        httpGet:
+          path: /minio/health/ready
+          port: api
+          scheme: HTTP
+      replicaCount: 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+        seLinuxOptions: {}
+        seccompProfile:
+          type: RuntimeDefault
+      service:
+        ports:
+        - name: api
+          port: 9000
+          protocol: TCP
+          targetPort: api
+        - name: console
+          port: 9001
+          protocol: TCP
+          targetPort: console
+        type: ClusterIP
+      startupProbe:
+        httpGet:
+          path: /minio/health/ready
+          port: api
+          scheme: HTTP
+      storage: 1Gi
+      updateStrategy:
+        type: RollingUpdate
+      volumeClaimTemplates:
+      - metadata:
+          name: liferay-objectstorage-pvc
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+      volumeMounts:
+      - mountPath: /tmp
+        name: liferay-objectstorage-pvc
+        subPath: tmp-dir
+      - mountPath: /opt/bitnami/minio/tmp
+        name: liferay-objectstorage-pvc
+        subPath: app-tmp-dir
+      - mountPath: /.mc
+        name: liferay-objectstorage-pvc
+        subPath: app-mc-dir
+      - mountPath: /bitnami/minio/data
+        name: liferay-objectstorage-pvc
+        subPath: data-dir
+  search:
+    source: statefulset
+    statefulset:
+      env:
+      - name: xpack.security.enabled
+        value: "false"
+      - name: xpack.security.transport.ssl.enabled
+        value: "false"
+      - name: xpack.security.http.ssl.enabled
+        value: "false"
+      - name: cluster.name
+        value: liferay_cluster
+      - name: discovery.type
+        value: single-node
+      - name: ES_JAVA_OPTS
+        value: "-Xms256m -Xmx256m"
+      - name: ELASTIC_PASSWORD
+        value: search
+      image:
+        repository: elasticsearch
+        tag: 8.17.0
+        pullPolicy: IfNotPresent
+      initContainers:
+      - command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        image: busybox:stable-uclibc
+        name: increase-vm-max-map
+        securityContext:
+          privileged: true
+      - command: ["sh", "-c", "ulimit -n 65536"]
+        image: busybox:stable-uclibc
+        name: increase-fd-ulimit
+        securityContext:
+          privileged: true
+      - command:
+        - sh
+        - -c
+        - |
+          if [ ! -d ./plugins/analysis-icu ];then
+            bin/elasticsearch-plugin install --batch analysis-icu analysis-kuromoji analysis-smartcn analysis-stempel
+          else
+            echo "Plugins already installed!"
+          fi
+
+          if [ ! -e ./_config/log4j2.properties ];then
+            cp -rv ./config/* ./_config
+          fi
+        image: elasticsearch:8.17.0
+        imagePullPolicy: IfNotPresent
+        name: install-plugins
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/plugins
+          name: liferay-search-pvc
+          subPath: plugins
+        - mountPath: /usr/share/elasticsearch/_config
+          name: liferay-search-pvc
+          subPath: config
+      livenessProbe:
+        tcpSocket:
+          port: search
+      podSecurityContext:
+        fsGroup: 1000
+      ports:
+      - containerPort: 9200
+        name: search
+        protocol: TCP
+      readinessProbe:
+        tcpSocket:
+          port: search
+      replicaCount: 1
+      service:
+        ports:
+        - name: search
+          port: 9200
+          protocol: TCP
+          targetPort: search
+        type: ClusterIP
+      startupProbe:
+        failureThreshold: 30
+        tcpSocket:
+          port: search
+      storage: 1Gi
+      updateStrategy:
+        type: RollingUpdate
+      volumeClaimTemplates:
+      - metadata:
+          name: liferay-search-pvc
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+      volumeMounts:
+      - mountPath: /usr/share/elasticsearch/config
+        name: liferay-search-pvc
+        subPath: config
+      - mountPath: /usr/share/elasticsearch/data
+        name: liferay-search-pvc
+        subPath: data
+      - mountPath: /usr/share/elasticsearch/logs
+        name: liferay-search-pvc
+        subPath: logs
+      - mountPath: /usr/share/elasticsearch/plugins
+        name: liferay-search-pvc
+        subPath: plugins
+ingress:
+  enabled: true
+  rules:
+  - host: "*.dxp.docker.localhost"
+    http:
+      paths:
+      - backend:
+          service:
+            name: liferay-default
+            port:
+              name: http
+        path: /
+        pathType: ImplementationSpecific
+portalProperties: |
+  include-and-override=portal-developer.properties
+  company.default.virtual.host.mail.domain=main.dxp.docker.localhost
+  company.default.virtual.host.name=main.dxp.docker.localhost
+  company.default.web.id=main.dxp.docker.localhost
+  web.server.display.node=true
+resources:
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+  requests:
+    cpu: 2000m
+    memory: 6Gi

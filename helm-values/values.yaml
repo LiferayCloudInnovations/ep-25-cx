@@ -50,7 +50,8 @@ configmap:
       #!/usr/bin/env bash
       echo "Adding Liferay Client User ${RABBITMQ_CLIENT_USERNAME} to RabbitMQ"
       rabbitmqctl add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}"
-      rabbitmqctl set_permissions -p "/" "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*"
+      rabbitmqctl set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management'
+      rabbitmqctl set_permissions --vhost '/' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*"
     RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
     RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:

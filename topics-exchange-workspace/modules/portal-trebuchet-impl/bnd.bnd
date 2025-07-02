@@ -1,0 +1,6 @@
+Bundle-Name: Liferay Portal Trebuchet Implementation
+Bundle-SymbolicName: com.liferay.portal.trebuchet.impl
+Bundle-Version: 1.0.0
+Import-Package:\
+	!org.slf4j.*,\
+	*

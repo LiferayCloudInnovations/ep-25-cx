@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Portal Trebuchet API
+Bundle-SymbolicName: com.liferay.portal.trebuchet.api
+Bundle-Version: 1.0.0
+Export-Package: com.liferay.portal.trebuchet

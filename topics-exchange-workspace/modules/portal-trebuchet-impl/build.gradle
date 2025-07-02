@@ -1,0 +1,5 @@
+dependencies {
+	compileInclude group: "com.rabbitmq", name: "amqp-client", version: "5.25.0"
+	compileOnly group: "com.liferay.portal", name: "release.dxp.api"
+	compileOnly project(":modules:portal-trebuchet-api")
+}

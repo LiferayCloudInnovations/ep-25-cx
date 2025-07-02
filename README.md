@@ -49,6 +49,8 @@ At the prompt use `curl` to can make queries using the user credentials `lfrrabb
 e.g.
 
 ```shell
+curl -sL -u lfrrabbitmq:lfrrabbitmq -H "Accept: application/json" http://liferay-default-rabbitmq.liferay-system:15672/api/overview?disable_stats=true | jq
+
 curl -sL -u lfrrabbitmq:lfrrabbitmq -H "Accept: application/json" http://liferay-default-rabbitmq.liferay-system:15672/api/vhosts/%2f/channels | jq
 ```
 

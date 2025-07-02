@@ -34,6 +34,26 @@
      -f helm-values/values.yaml
    ```
 
+### Make REST requests to RabbitMQ using Curl
+
+A RabbitMQ user is setup in the Helm chart that allows making management requests over REST.
+
+Start by running the following a container with curl as follows:
+
+```shell
+k run -it --rm --restart=Never alpine --image=alpine -- sh -c "apk add bash curl jq && bash"
+```
+
+At the prompt use `curl` to can make queries using the user credentials `lfrrabbitmq:lfrrabbitmq`.
+
+e.g.
+
+```shell
+curl -sL -u lfrrabbitmq:lfrrabbitmq -H "Accept: application/json" http://liferay-default-rabbitmq.liferay-system:15672/api/vhosts/%2f/channels | jq
+```
+
+The RabbitMQ REST API is documented [here](https://www.rabbitmq.com/docs/http-api-reference#overview).
+
 #### Reset from Scratch
 
 If you need to delete everything deployed into the cluster and start again from scratch (also deleting any data) use the following commands:

@@ -7,6 +7,7 @@
 - a local Kubernetes impl (K3d is documented here)
 - Helm
 - Stern (optional but useful)
+- a Liferay developer license
 
 ### Running Liferay with RabbitMQ using the official Helm chart
 
@@ -18,6 +19,8 @@
      --registry-create registry:5000 \
      --volume "/home/me/tmp/mount:/mnt/local@all:*"
    ```
+
+1. Make sure to place your license file at `license.xml` in the repo (it is ignored by git but needed by Helm chart).
 
 1. Using the values file `helm-values/values.yaml` execute the following commands:
 

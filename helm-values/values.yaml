@@ -4,7 +4,7 @@ x-invoke: |
     oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default \
     --create-namespace \
     --namespace liferay-system \
-    --set "image.tag=2025.q1.14-lts" \
+    --set "image.tag=7.4.13-u132" \
     --set-file "configmap.data.license\.xml=license.xml" \
     -f helm-values/values.yaml
 

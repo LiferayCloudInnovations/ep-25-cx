@@ -49,6 +49,14 @@ configmap:
       port=i"5672"
       username="$[env:RABBITMQ_CLIENT_USERNAME]"
       password="$[env:RABBITMQ_CLIENT_PASSWORD]"
+    ep25cx-log4j-ext.xml: |
+      <?xml version="1.0"?>
+      <Configuration strict="true">
+        <Loggers>
+          <Logger level="DEBUG" name="com.liferay.object.message.broker" />
+          <Logger level="DEBUG" name="com.liferay.portal.trebuchet" />
+        </Loggers>
+      </Configuration>
     rabbitmq.conf: |
       # config
     010_init_a_default_rabbitmq_user.sh: |
@@ -97,6 +105,10 @@ customVolumeMounts:
   - mountPath: /usr/local/liferay/scripts/pre-configure/999_troubleshooting.sh
     name: liferay-configmap
     subPath: 000_troubleshooting.sh
+  x-ep25cx-logging:
+    - mountPath: /opt/liferay/osgi/log4j/ep25cx-log4j-ext.xml
+      name: liferay-configmap
+      subPath: ep25cx-log4j-ext.xml
 customVolumes:
   x-full-auto-scaling:
   - hostPath:
@@ -288,7 +300,7 @@ dependencies:
       ingress:
         enabled: true
         rules:
-        - host: rabbitmq.docker.localhost
+        - host: rabbitmq.localtest.me
           http:
             paths:
             - backend:
@@ -509,7 +521,7 @@ customInitContainers:
                               if [ -d /mnt/local/osgi/modules/ ]
                               then
                                 mkdir -p /temp/liferay/osgi/modules/
-                                cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/osgi/modules/
+                                cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/deploy/
                               fi
                   image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}
                   imagePullPolicy: {{ .image.pullPolicy }}
@@ -522,7 +534,7 @@ customInitContainers:
 ingress:
   enabled: true
   rules:
-  - host: "*.dxp.docker.localhost"
+  - host: "*.dxp.localtest.me"
     http:
       paths:
       - backend:
@@ -534,9 +546,9 @@ ingress:
         pathType: ImplementationSpecific
 portalProperties: |
   include-and-override=portal-developer.properties
-  company.default.virtual.host.mail.domain=main.dxp.docker.localhost
-  company.default.virtual.host.name=main.dxp.docker.localhost
-  company.default.web.id=main.dxp.docker.localhost
+  company.default.virtual.host.mail.domain=main.dxp.localtest.me
+  company.default.virtual.host.name=main.dxp.localtest.me
+  company.default.web.id=main.dxp.localtest.me
   web.server.display.node=true
 resources:
   limits:

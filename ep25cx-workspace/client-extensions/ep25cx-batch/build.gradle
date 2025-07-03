@@ -20,7 +20,7 @@ clientExtensionConfig:
 env:
     LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
 image:
-    repository: registry:5000/${project.name}:latest
+    repository: registry:5000/${project.name}
 """
 
         generatedFilePath.write(valuesYamlContent)

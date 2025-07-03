@@ -79,4 +79,6 @@ start-cluster: mkdir-local-mount ## Start k3d cluster
 		--port 80:80@loadbalancer \
 		--registry-create registry:5000 \
 		--volume "${PWD}/${LOCAL_MOUNT}:/mnt/local@all:*"
+	@kubectx k3d-${CLUSTER_NAME}
+	@kubectl get cm coredns -n kube-system -o yaml | sed '/.*host.k3d.internal$/ { p; s/host.k3d.internal/main.dxp.localtest.me/; }' | kubectl apply -f - && kubectl rollout restart deployment coredns -n kube-system
 

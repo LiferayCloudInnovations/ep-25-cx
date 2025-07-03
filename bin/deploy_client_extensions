@@ -6,10 +6,12 @@ for cx in "$1"/*.zip
 do
     # Unzip the client extension
     cx_name=$(basename "$cx" .zip)
-    unzip -d "$cx_name" "$cx"
+    rm -rf "tmp/cx_build/$cx_name"
+    mkdir -p "tmp/cx_build/$cx_name"
+    unzip -d "tmp/cx_build/$cx_name" "$cx"
 
     # Build and push the Docker image to registry
-    cd "$cx_name"
+    cd "tmp/cx_build/$cx_name"
     docker build -t "$cx_name":latest .
     docker tag "$cx_name":latest localhost:5000/"$cx_name":latest
     docker push localhost:5000/"$cx_name":latest
@@ -18,8 +20,5 @@ do
     helm upgrade --install "$cx_name" \
         --namespace liferay-system \
         -f cx-values.yaml \
-        ../helm-charts/client-extension/
-
-    cd ..
-    rm -rf "$cx_name"
+        ../../../helm-charts/client-extension/
 done

@@ -4,7 +4,7 @@ x-invoke: |
     oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default \
     --create-namespace \
     --namespace liferay-system \
-    --set "image.tag=7.4.13.nightly" \
+    --set "image.tag=2025.q1.14-lts" \
     --set-file "configmap.data.license\.xml=license.xml" \
     -f helm-values/values.yaml
 
@@ -44,6 +44,11 @@ configmap:
       s3Region="us-west-1"
       s3StorageClass="STANDARD"
       secretKey="objectstorage"
+    com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config: |
+      host="liferay-default-rabbitmq"
+      port=i"5672"
+      username="$[env:RABBITMQ_CLIENT_USERNAME]"
+      password="$[env:RABBITMQ_CLIENT_PASSWORD]"
     rabbitmq.conf: |
       # config
     010_init_a_default_rabbitmq_user.sh: |
@@ -83,6 +88,9 @@ customVolumeMounts:
   - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.store.s3.configuration.S3StoreConfiguration.config
     name: liferay-configmap
     subPath: com.liferay.portal.store.s3.configuration.S3StoreConfiguration.config
+  - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config
+    name: liferay-configmap
+    subPath: com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config
   - mountPath: /opt/liferay/osgi/war
     name: liferay-persistent-volume
     subPath: osgi/war

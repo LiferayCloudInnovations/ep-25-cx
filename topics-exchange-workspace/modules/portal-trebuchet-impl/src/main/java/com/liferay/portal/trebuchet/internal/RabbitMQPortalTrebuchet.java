@@ -68,6 +68,8 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 				connectionFactory.setAutomaticRecoveryEnabled(_messageBrokerConfiguration.automaticRecoveryEnabled());
 				connectionFactory.setHost(_messageBrokerConfiguration.host());
 				connectionFactory.setPort(_messageBrokerConfiguration.port());
+				connectionFactory.setUsername(_messageBrokerConfiguration.username());
+				connectionFactory.setPassword(_messageBrokerConfiguration.password());
 
 				try (Connection connection = connectionFactory.newConnection();
 					Channel channel = connection.createChannel()) {

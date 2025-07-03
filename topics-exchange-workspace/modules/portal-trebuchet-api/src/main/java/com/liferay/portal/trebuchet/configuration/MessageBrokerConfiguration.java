@@ -17,4 +17,8 @@ public interface MessageBrokerConfiguration {
 
     @Meta.AD(deflt = "false")
     boolean automaticRecoveryEnabled();
+
+    String username();
+
+    String password();
 }

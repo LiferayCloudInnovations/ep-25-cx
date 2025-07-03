@@ -499,6 +499,25 @@ dependencies:
       - mountPath: /usr/share/elasticsearch/plugins
         name: liferay-search-pvc
         subPath: plugins
+customInitContainers:
+    x-deploy-osgi-modules:
+      -   containerTemplate: |
+              -   command:
+                      -   bash
+                      -   -c
+                      -   |
+                              if [ -d /mnt/local/osgi/modules/ ]
+                              then
+                                cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/osgi/modules/
+                              fi
+                  image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}
+                  imagePullPolicy: {{ .image.pullPolicy }}
+                  name: liferay-deploy-modules
+                  volumeMounts:
+                      -   mountPath: /temp
+                          name: liferay-persistent-volume
+                      -   mountPath: /mnt/local
+                          name: mount-local
 ingress:
   enabled: true
   rules:

@@ -1,0 +1,16 @@
+.DS_Store
+/.idea
+/bundles
+/poshi/poshi-ext.properties
+/poshi/test-results
+/poshi/tests
+.project
+.classpath
+.iml
+.gradle/
+.settings/
+bin
+build
+dist
+node_modules
+node_modules_cache

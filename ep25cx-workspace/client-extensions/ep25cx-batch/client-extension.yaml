@@ -1,16 +1,16 @@
 assemble:
     -   from: batch
         into: batch
-liferay-sample-batch-oauth-application-headless-server:
+ep25cx-batch-oauth-application-headless-server:
     .serviceAddress: localhost:8080
     .serviceScheme: http
-    name: Topics Exchange OAuth Application Headless Server
+    name: EP25CX Batch OAuth Application Headless Server
     scopes:
         -   Liferay.Headless.Admin.Workflow.everything
         -   Liferay.Headless.Batch.Engine.everything
         -   Liferay.Object.Admin.REST.everything
     type: oAuthApplicationHeadlessServer
-topics-exchange-batch:
-    name: Topics Exchange Batch
-    oAuthApplicationHeadlessServer: topics-exchange-batch-oauth-application-headless-server
+ep25cx-batch:
+    name: EP25CX Batch
+    oAuthApplicationHeadlessServer: ep25cx-batch-oauth-application-headless-server
     type: batch

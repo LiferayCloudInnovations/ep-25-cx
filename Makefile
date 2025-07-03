@@ -10,8 +10,11 @@ LOCAL_MOUNT := k3d-tmp/mnt/local
 
 clean: delete-cluster clean-dxp-modules clean-local-mount ## Clean up everything
 
+clean-client-extensions: ## Clean Client Extensions
+	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:clean
+
 clean-dxp-modules: ## Clean DXP modules
-	@cd ./topics-exchange-workspace/ && ./gradlew clean
+	@cd ./ep25cx-workspace/ && ./gradlew :modules:clean
 	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/"
 
 clean-license:
@@ -25,16 +28,16 @@ delete-cluster: ## Delete k3d cluster
 
 copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
-	@cp -fv ./topics-exchange-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
+	@cp -fv ./ep25cx-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
 
-client-extensions: ## Build Client Extensions
-	@cd ./topics-exchange-workspace/ && ./gradlew :client-extensions:clean :client-extensions:build :client-extensions:deploy -x test -x check
+client-extensions: clean-client-extensions ## Build Client Extensions
+	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:build :client-extensions:deploy -x test -x check
 
-dxp-modules: ## Build DXP Modules
-	@cd ./topics-exchange-workspace/ && ./gradlew :modules:clean :modules:build :modules:deploy -x test -x check
+dxp-modules: clean-dxp-modules ## Build DXP Modules
+	@cd ./ep25cx-workspace/ && ./gradlew :modules:build :modules:deploy -x test -x check
 
 hot-deploy-modules: copy-dxp-modules-to-local-mount ## Build and Copy DXP modules into running container
-	@kubectl cp "${PWD}/${LOCAL_MOUNT}/osgi/modules/" liferay-default-0:/opt/liferay/osgi/modules/ -n liferay-system
+	@./bin/kubectl_copy_all "${PWD}/${LOCAL_MOUNT}/osgi/modules" liferay-default-0 /opt/liferay/osgi/modules liferay-system
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

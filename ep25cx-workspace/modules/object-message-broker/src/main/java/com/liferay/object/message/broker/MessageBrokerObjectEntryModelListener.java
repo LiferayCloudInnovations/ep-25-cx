@@ -1,4 +1,4 @@
-package com.liferay.object.topics.exchange;
+package com.liferay.object.message.broker;
 
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Gregory Amerson
  */
 @Component(service = ModelListener.class)
-public class TopicsExchangeObjectEntryModelListener
+public class MessageBrokerObjectEntryModelListener
 	extends BaseModelListener<ObjectEntry> {
 
 	@Override
@@ -98,11 +98,11 @@ public class TopicsExchangeObjectEntryModelListener
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		TopicsExchangeObjectEntryModelListener.class);
+		MessageBrokerObjectEntryModelListener.class);
 
 	private static final Snapshot<PortalTrebuchet> _portalTrebuchet =
 		new Snapshot<>(
-			TopicsExchangeObjectEntryModelListener.class,
+			MessageBrokerObjectEntryModelListener.class,
 			PortalTrebuchet.class);
 
 	@Reference

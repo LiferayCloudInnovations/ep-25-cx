@@ -1,4 +1,4 @@
-package com.liferay.object.topics.exchange;
+package com.liferay.object.message.broker;
 
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;

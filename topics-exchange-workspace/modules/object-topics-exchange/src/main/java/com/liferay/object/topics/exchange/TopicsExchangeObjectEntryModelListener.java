@@ -88,18 +88,9 @@ public class TopicsExchangeObjectEntryModelListener
 				objectDefinition, objectEntry, originalObjectEntry, null,
 				_userLocalService.getUser(userId));
 
-			String exchangeKey =
-				objectDefinition.getName() + "objectEntry.events";
+			String queueName = objectDefinition.getName() + "Event";
 
-			String routingKey =
-				objectDefinition.getName() + ".onAfterUpdate";
-
-			_log.info(exchangeKey + "#" + routingKey + " => " + String.valueOf(payloadJSONObject));
-
-			portalTrebuchet.fire(
-				objectEntry.getCompanyId(), "objectEntry.events",
-				payloadJSONObject,
-				routingKey, userId);
+			portalTrebuchet.fire(objectEntry.getCompanyId(), payloadJSONObject, queueName, userId);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);

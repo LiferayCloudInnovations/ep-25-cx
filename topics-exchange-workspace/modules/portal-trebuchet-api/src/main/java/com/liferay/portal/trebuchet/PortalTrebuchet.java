@@ -11,9 +11,10 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface PortalTrebuchet {
 
+    public static final String DEFAULT_EXCHANGE = "";
+
 	public void fire(
-			long companyId, String exchangeKey, JSONObject payloadJSONObject,
-			String routingKey, long userId)
+			long companyId, JSONObject payloadJSONObject, String queue, long userId)
 		throws PortalException;
 
 }

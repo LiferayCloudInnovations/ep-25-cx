@@ -5,7 +5,15 @@
 
 package com.liferay.portal.trebuchet.internal;
 
-import com.liferay.object.action.executor.ObjectActionExecutor;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+
 import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -13,23 +21,10 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
-
 import com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration;
-import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-
-import java.nio.charset.StandardCharsets;
-
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Gregory Amerson
@@ -52,9 +47,7 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 	}
 
 	@Override
-	public void fire(
-			long companyId, String exchangeSuffix, JSONObject payloadJSONObject,
-			String routingKey, long userId)
+	public void fire(long companyId, JSONObject payloadJSONObject, String queue, long userId)
 		throws PortalException {
 
 		ExecutorService executorService =
@@ -73,17 +66,14 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 
 				try (Connection connection = connectionFactory.newConnection();
 					Channel channel = connection.createChannel()) {
+                    channel.queueDeclare(queue, true, false, false, null);
 
-					String exchange = "liferay." + exchangeSuffix;
+					String payload = payloadJSONObject.toString();
 
-					channel.exchangeDeclare(exchange, BuiltinExchangeType.TOPIC, true, false, null);
-
-					String message = payloadJSONObject.toString();
-
-					channel.basicPublish(exchange, routingKey, null, message.getBytes(StandardCharsets.UTF_8));
+					channel.basicPublish(DEFAULT_EXCHANGE, queue, null, payload.getBytes(StandardCharsets.UTF_8));
 
 					if (_log.isDebugEnabled()) {
-						_log.debug("Sent jsonBody => " + exchange + "#" + routingKey);
+						_log.debug("Sent jsonBody => " + queue);
 					}
 				}
 				catch (Exception exception) {

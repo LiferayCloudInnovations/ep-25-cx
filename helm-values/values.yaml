@@ -54,9 +54,9 @@ configmap:
     010_init_a_default_rabbitmq_user.sh: |
       #!/usr/bin/env bash
       echo "Adding Liferay Client User ${RABBITMQ_CLIENT_USERNAME} to RabbitMQ"
-      rabbitmqctl add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}"
-      rabbitmqctl set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management'
-      rabbitmqctl set_permissions --vhost '/' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*"
+      rabbitmqctl add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}" || true
+      rabbitmqctl set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management' || true
+      rabbitmqctl set_permissions --vhost '/' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*" || true
     RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
     RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:
@@ -298,13 +298,13 @@ dependencies:
                     name: management
               path: /
               pathType: ImplementationSpecific
-      livenessProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_local_alarms
-        initialDelaySeconds: 120
+      # livenessProbe:
+      #   exec:
+      #     command:
+      #     - sh
+      #     - -c
+      #     - rabbitmq-diagnostics -q check_local_alarms
+      #   initialDelaySeconds: 120
       podSecurityContext:
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
@@ -315,13 +315,13 @@ dependencies:
       - containerPort: 15672
         name: management
         protocol: TCP
-      readinessProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_running
-        initialDelaySeconds: 10
+      # readinessProbe:
+      #   exec:
+      #     command:
+      #     - sh
+      #     - -c
+      #     - rabbitmq-diagnostics -q check_running
+      #   initialDelaySeconds: 10
       replicaCount: 1
       securityContext:
         allowPrivilegeEscalation: false
@@ -347,14 +347,14 @@ dependencies:
           protocol: TCP
           targetPort: management
         type: ClusterIP
-      startupProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_port_connectivity
-        initialDelaySeconds: 10
-        failureThreshold: 30
+      # startupProbe:
+      #   exec:
+      #     command:
+      #     - sh
+      #     - -c
+      #     - rabbitmq-diagnostics -q check_port_connectivity
+      #   initialDelaySeconds: 10
+      #   failureThreshold: 30
       storage: 1Gi
       updateStrategy:
         type: RollingUpdate
@@ -508,6 +508,7 @@ customInitContainers:
                       -   |
                               if [ -d /mnt/local/osgi/modules/ ]
                               then
+                                mkdir -p /temp/liferay/osgi/modules/
                                 cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/osgi/modules/
                               fi
                   image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}

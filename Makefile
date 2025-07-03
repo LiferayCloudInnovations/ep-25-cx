@@ -27,8 +27,14 @@ copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
 	@cp -fv ./topics-exchange-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
 
+client-extensions: ## Build Client Extensions
+	@cd ./topics-exchange-workspace/ && ./gradlew :client-extensions:clean :client-extensions:build :client-extensions:deploy -x test -x check
+
 dxp-modules: ## Build DXP Modules
-	@cd ./topics-exchange-workspace/ && ./gradlew clean build deploy -x test -x check
+	@cd ./topics-exchange-workspace/ && ./gradlew :modules:clean :modules:build :modules:deploy -x test -x check
+
+hot-deploy-modules: copy-dxp-modules-to-local-mount ## Build and Copy DXP modules into running container
+	@kubectl cp "${PWD}/${LOCAL_MOUNT}/osgi/modules/" liferay-default-0:/opt/liferay/osgi/modules/ -n liferay-system
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -51,10 +57,10 @@ deploy-dxp: copy-dxp-modules-to-local-mount ## Deploy DXP and sidecars into clus
 		--set-file "configmap.data.license\.xml=license.xml" \
 		-f helm-values/values.yaml
 
-undeploy-dxp:
+clean-dxp:
 	@helm uninstall -n liferay-system liferay
 
-delete-pvc:
+clean-data:
 	@kubectl delete pvc --selector "app.kubernetes.io/name=liferay-default" -n liferay-system
 
 start-cluster: mkdir-local-mount ## Start k3d cluster

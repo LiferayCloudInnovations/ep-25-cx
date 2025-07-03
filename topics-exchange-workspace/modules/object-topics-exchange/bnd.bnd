@@ -1,4 +1,0 @@
-Bundle-Name: Liferay Object Topics Exchange
-Bundle-SymbolicName: com.liferay.object.topics.exchange
-Bundle-Version: 1.0.0
--dsannotations-options: inherit

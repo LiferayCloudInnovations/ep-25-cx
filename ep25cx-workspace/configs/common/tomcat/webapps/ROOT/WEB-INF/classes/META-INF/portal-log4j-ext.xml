@@ -3,8 +3,8 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="DEBUG" name="com.liferay.object.api" />
+		<Logger level="DEBUG" name="com.liferay.object.message.broker" />
 		<Logger level="DEBUG" name="com.liferay.object.service" />
-		<Logger level="DEBUG" name="com.liferay.object.topics.exchange" />
 		<Logger level="DEBUG" name="com.liferay.portal.trebuchet" />
 
 		<Root level="INFO">

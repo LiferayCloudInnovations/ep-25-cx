@@ -1,0 +1,9 @@
+def buildSubprojects = task build
+def cleanSubprojects = task clean
+
+subprojects {
+    afterEvaluate {
+        buildSubprojects.dependsOn it.tasks["build"]
+        cleanSubprojects.dependsOn it.tasks["clean"]
+    }
+}

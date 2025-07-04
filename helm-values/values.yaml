@@ -310,13 +310,13 @@ dependencies:
                     name: management
               path: /
               pathType: ImplementationSpecific
-      # livenessProbe:
-      #   exec:
-      #     command:
-      #     - sh
-      #     - -c
-      #     - rabbitmq-diagnostics -q check_local_alarms
-      #   initialDelaySeconds: 120
+      livenessProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_local_alarms
+        initialDelaySeconds: 40
       podSecurityContext:
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
@@ -327,13 +327,13 @@ dependencies:
       - containerPort: 15672
         name: management
         protocol: TCP
-      # readinessProbe:
-      #   exec:
-      #     command:
-      #     - sh
-      #     - -c
-      #     - rabbitmq-diagnostics -q check_running
-      #   initialDelaySeconds: 10
+      readinessProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_running
+        initialDelaySeconds: 10
       replicaCount: 1
       securityContext:
         allowPrivilegeEscalation: false
@@ -359,14 +359,15 @@ dependencies:
           protocol: TCP
           targetPort: management
         type: ClusterIP
-      # startupProbe:
-      #   exec:
-      #     command:
-      #     - sh
-      #     - -c
-      #     - rabbitmq-diagnostics -q check_port_connectivity
-      #   initialDelaySeconds: 10
-      #   failureThreshold: 30
+      startupProbe:
+        exec:
+          command:
+          - sh
+          - -c
+          - rabbitmq-diagnostics -q check_port_connectivity
+        initialDelaySeconds: 2
+        failureThreshold: 10
+        periodSeconds: 2
       storage: 1Gi
       updateStrategy:
         type: RollingUpdate

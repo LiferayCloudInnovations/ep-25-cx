@@ -78,8 +78,7 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		try {
 			_portalTrebuchet.fire(
-				companyId, destinationName, (JSONObject)payload,
-				destinationName, userId);
+				companyId, (JSONObject)payload, destinationName, userId);
 		}
 		catch (PortalException portalException) {
 			throw new MessageListenerException(portalException);

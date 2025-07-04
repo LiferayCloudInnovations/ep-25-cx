@@ -49,11 +49,17 @@ configmap:
       port=i"5672"
       userName="$[env:RABBITMQ_CLIENT_USERNAME]"
       password="$[env:RABBITMQ_CLIENT_PASSWORD]"
-    ep25cx-log4j-ext.xml: |
+    com.liferay.object.message.broker-log4j-ext.xml: |
       <?xml version="1.0"?>
       <Configuration strict="true">
         <Loggers>
           <Logger level="DEBUG" name="com.liferay.object.message.broker" />
+        </Loggers>
+      </Configuration>
+    com.liferay.portal.trebuchet.impl-log4j-ext.xml: |
+      <?xml version="1.0"?>
+      <Configuration strict="true">
+        <Loggers>
           <Logger level="DEBUG" name="com.liferay.portal.trebuchet" />
         </Loggers>
       </Configuration>
@@ -125,9 +131,12 @@ customVolumeMounts:
   - mountPath: /usr/local/liferay/scripts/pre-configure/999_troubleshooting.sh
     name: liferay-configmap
     subPath: 000_troubleshooting.sh
-  - mountPath: /opt/liferay/osgi/log4j/ep25cx-log4j-ext.xml
+  - mountPath: /opt/liferay/osgi/log4j/com.liferay.object.message.broker-log4j-ext.xml
     name: liferay-configmap
-    subPath: ep25cx-log4j-ext.xml
+    subPath: com.liferay.object.message.broker-log4j-ext.xml
+  - mountPath: /opt/liferay/osgi/log4j/com.liferay.portal.trebuchet.impl-log4j-ext.xml
+    name: liferay-configmap
+    subPath: com.liferay.portal.trebuchet.impl-log4j-ext.xml
 customVolumes:
   x-cx-rabbitmq-demo:
   - hostPath:

@@ -86,6 +86,10 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 	protected void activate(Map<String, Object> properties) throws Exception {
 		_messageBrokerConfiguration = ConfigurableUtil.createConfigurable(
 			MessageBrokerConfiguration.class, properties);
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Activated");
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

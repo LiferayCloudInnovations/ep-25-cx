@@ -17,13 +17,17 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Gregory Amerson
  */
-@Component(service = ModelListener.class)
+@Component(
+	immediate = true,
+	service = ModelListener.class
+)
 public class MessageBrokerObjectEntryModelListener
 	extends BaseModelListener<ObjectEntry> {
 
@@ -65,6 +69,13 @@ public class MessageBrokerObjectEntryModelListener
 		throws ModelListenerException {
 
 		_enqueuePayload("onAfterUpdate", originalObjectEntry, objectEntry);
+	}
+
+	@Activate
+	protected void activate() {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Activated");
+		}
 	}
 
 	private void _enqueuePayload(

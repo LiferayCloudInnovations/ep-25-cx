@@ -1,20 +1,24 @@
 package com.liferay.portal.trebuchet.internal;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.messaging.MessageListenerException;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 @Component(
+	immediate = true,
 	property = {
 		"destination.name=destination.workflow_definition_link",
 		"destination.name=destination.workflow_timer",
@@ -68,13 +72,20 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		long userId = _getUserId(message);
 
+		String destinationName = message.getDestinationName();
+
 		Object payload = message.getPayload();
 
 		if (!(payload instanceof JSONObject)) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					StringBundler.concat(
+						"Message payload for ", destinationName,
+						" is not a JSONObject: ", payload));
+			}
+
 			return;
 		}
-
-		String destinationName = message.getDestinationName();
 
 		try {
 			_portalTrebuchet.fire(
@@ -82,6 +93,13 @@ public class RabbitMQMessageListener implements MessageListener {
 		}
 		catch (PortalException portalException) {
 			throw new MessageListenerException(portalException);
+		}
+	}
+
+	@Activate
+	protected void activate() {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Activated");
 		}
 	}
 
@@ -102,6 +120,9 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		return permissionChecker.getUserId();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		RabbitMQMessageListener.class);
 
 	@Reference
 	private PortalTrebuchet _portalTrebuchet;

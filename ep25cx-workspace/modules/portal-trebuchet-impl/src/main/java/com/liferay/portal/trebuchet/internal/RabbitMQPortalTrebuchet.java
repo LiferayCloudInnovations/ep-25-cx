@@ -5,15 +5,6 @@
 
 package com.liferay.portal.trebuchet.internal;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-
 import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -22,32 +13,35 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
 import com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+
+import java.nio.charset.StandardCharsets;
+
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Gregory Amerson
  */
 @Component(
-		configurationPid = "com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration",
-		configurationPolicy = ConfigurationPolicy.REQUIRE,
-		service = PortalTrebuchet.class
+	configurationPid = "com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration",
+	configurationPolicy = ConfigurationPolicy.REQUIRE,
+	service = PortalTrebuchet.class
 )
 public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 
-	private MessageBrokerConfiguration _messageBrokerConfiguration;
-
-	@Activate
-	protected void activate(Map<String, Object> properties) throws Exception {
-		_messageBrokerConfiguration =
-				ConfigurableUtil.createConfigurable(
-						MessageBrokerConfiguration.class,
-						properties);
-	}
-
 	@Override
-	public void fire(long companyId, JSONObject payloadJSONObject, String queue, long userId)
+	public void fire(
+			long companyId, JSONObject payloadJSONObject, String queue,
+			long userId)
 		throws PortalException {
 
 		ExecutorService executorService =
@@ -58,19 +52,25 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 			() -> {
 				ConnectionFactory connectionFactory = new ConnectionFactory();
 
-				connectionFactory.setAutomaticRecoveryEnabled(_messageBrokerConfiguration.automaticRecoveryEnabled());
+				connectionFactory.setAutomaticRecoveryEnabled(
+					_messageBrokerConfiguration.automaticRecoveryEnabled());
 				connectionFactory.setHost(_messageBrokerConfiguration.host());
 				connectionFactory.setPort(_messageBrokerConfiguration.port());
-				connectionFactory.setUsername(_messageBrokerConfiguration.username());
-				connectionFactory.setPassword(_messageBrokerConfiguration.password());
+				connectionFactory.setUsername(
+					_messageBrokerConfiguration.userName());
+				connectionFactory.setPassword(
+					_messageBrokerConfiguration.password());
 
 				try (Connection connection = connectionFactory.newConnection();
 					Channel channel = connection.createChannel()) {
-                    channel.queueDeclare(queue, true, false, false, null);
+
+					channel.queueDeclare(queue, true, false, false, null);
 
 					String payload = payloadJSONObject.toString();
 
-					channel.basicPublish(DEFAULT_EXCHANGE, queue, null, payload.getBytes(StandardCharsets.UTF_8));
+					channel.basicPublish(
+						DEFAULT_EXCHANGE, queue, null,
+						payload.getBytes(StandardCharsets.UTF_8));
 
 					if (_log.isDebugEnabled()) {
 						_log.debug("Sent jsonBody => " + queue);
@@ -82,8 +82,16 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 			});
 	}
 
+	@Activate
+	protected void activate(Map<String, Object> properties) throws Exception {
+		_messageBrokerConfiguration = ConfigurableUtil.createConfigurable(
+			MessageBrokerConfiguration.class, properties);
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		RabbitMQPortalTrebuchet.class);
+
+	private MessageBrokerConfiguration _messageBrokerConfiguration;
 
 	@Reference
 	private PortalExecutorManager _portalExecutorManager;

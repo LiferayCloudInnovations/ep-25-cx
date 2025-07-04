@@ -1,6 +1,10 @@
 assemble:
     -   from: batch
         into: batch
+ep25cx-batch:
+    name: EP25CX Batch
+    oAuthApplicationHeadlessServer: ep25cx-batch-oauth-application-headless-server
+    type: batch
 ep25cx-batch-oauth-application-headless-server:
     .serviceAddress: localhost:8080
     .serviceScheme: http
@@ -10,7 +14,3 @@ ep25cx-batch-oauth-application-headless-server:
         -   Liferay.Headless.Batch.Engine.everything
         -   Liferay.Object.Admin.REST.everything
     type: oAuthApplicationHeadlessServer
-ep25cx-batch:
-    name: EP25CX Batch
-    oAuthApplicationHeadlessServer: ep25cx-batch-oauth-application-headless-server
-    type: batch

@@ -4,7 +4,7 @@ SHELL = bash
 .DEFAULT_GOAL = help
 CLUSTER_NAME := ep25cx
 DXP_IMAGE_TAG := 7.4.13-u132
-LOCAL_MOUNT := k3d-tmp/mnt/local
+LOCAL_MOUNT := tmp/mnt/local
 
 ### TARGETS ###
 
@@ -12,10 +12,11 @@ clean: delete-cluster clean-dxp-modules clean-local-mount ## Clean up everything
 
 clean-client-extensions: ## Clean Client Extensions
 	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:clean
+	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
 
 clean-dxp-modules: ## Clean DXP modules
 	@cd ./ep25cx-workspace/ && ./gradlew :modules:clean
-	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/"
+	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/modules"
 
 clean-license:
 	@rm -f license.xml
@@ -26,9 +27,13 @@ clean-local-mount: ## Create k3d local mount folder
 delete-cluster: ## Delete k3d cluster
 	@k3d cluster delete "${CLUSTER_NAME}" || true
 
+copy-client-extensions-to-local-mount: client-extensions## Copy client extensions to local mount
+	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
+	@cp -fv ./ep25cx-workspace/bundles/osgi/client-extensions/* "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
+
 copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
-	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
-	@cp -fv ./ep25cx-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules/"
+	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/modules"
+	@cp -fv ./ep25cx-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules"
 
 client-extensions: clean-client-extensions ## Build Client Extensions
 	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:build :client-extensions:deploy -x test -x check
@@ -60,6 +65,9 @@ deploy-dxp: copy-dxp-modules-to-local-mount ## Deploy DXP and sidecars into clus
 		--set-file "configmap.data.license\.xml=license.xml" \
 		-f helm-values/values.yaml
 
+deploy-client-extensions: copy-client-extensions-to-local-mount ## Deploy Client extensions to cluster
+	@./bin/deploy_client_extensions "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
+
 clean-dxp:
 	@helm uninstall -n liferay-system liferay
 
@@ -71,4 +79,6 @@ start-cluster: mkdir-local-mount ## Start k3d cluster
 		--port 80:80@loadbalancer \
 		--registry-create registry:5000 \
 		--volume "${PWD}/${LOCAL_MOUNT}:/mnt/local@all:*"
+	@kubectx k3d-${CLUSTER_NAME}
+	@kubectl get cm coredns -n kube-system -o yaml | sed '/.*host.k3d.internal$/ { p; s/host.k3d.internal/main.dxp.localtest.me/; }' | kubectl apply -f - && kubectl rollout restart deployment coredns -n kube-system
 

@@ -82,18 +82,18 @@ kubectl -n liferay-system delete pvc --selector "app.kubernetes.io/name=liferay-
    it to file named `license.xml`
 1. Deploy DXP to Cluster `make deploy-dxp`
 1. View Liferay logs `stern pod/liferay-default-0 -c liferay-default`
-1. [**Login** to DXP](http://main.dxp.lfr.dev)
+1. [**Login** to DXP](http://main.dxp.localtest.me)
 1. To get the password use
    `kubectl get secrets liferay-default -o jsonpath='{.data.LIFERAY_DEFAULT_PERIOD_ADMIN_PERIOD_PASSWORD}' | base64 -d && echo`
 1. **View** the message broker's
-   [queue dashboard](http://rabbitmq.lfr.dev/#/queues)
+   [queue dashboard](http://rabbitmq.localtest.me/#/queues)
 1. **Notice** that there are **NO** object events queued
 1. After logging in, deploy Client Extensions `make deploy-cx`
 1. You should see the `A7W6 Sample` object definition get added to Liferay
 1. Add/Update/Remove several `A7W6 Sample` objects in the objects content page
-1. View message broker [queue dashboard](http://rabbitmq.lfr.dev/#/queues)
+1. View message broker [queue dashboard](http://rabbitmq.localtest.me/#/queues)
    and you should
-   [see a queue](http://rabbitmq.lfr.dev/#/queues/%2F/C_A7W6SampleEvent)
+   [see a queue](http://rabbitmq.localtest.me/#/queues/%2F/C_A7W6SampleEvent)
    for the object `A7W6 Sample`
 1. Click the `Get Messages` after putting in the number of events you wish to
    display

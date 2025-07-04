@@ -5,7 +5,7 @@ SHELL = bash
 CLUSTER_NAME := ep25cx
 DXP_IMAGE_TAG := 7.4.13-u132
 LOCAL_MOUNT := tmp/mnt/local
-MAIN_DOMAIN := main.dxp.lfr.dev
+MAIN_DOMAIN := main.dxp.localtest.me
 
 ### TARGETS ###
 

@@ -17,7 +17,7 @@ do
     docker push localhost:5000/"$cx_name":latest
 
     # Deploy the client extension to the Kubernetes cluster
-    helm upgrade --install "$cx_name" \
+    helm upgrade --install "$cx_name"-cx \
         --namespace liferay-system \
         -f cx-values.yaml \
         ../../../helm-charts/client-extension/

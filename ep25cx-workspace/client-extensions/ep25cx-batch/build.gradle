@@ -3,36 +3,36 @@ def generatedFileName = "cx-values.yaml"
 def generatedFilePath = layout.buildDirectory.file("tmp/${generatedFileName}").get().asFile
 
 tasks.register('generateValuesYamlFile') {
-    outputs.file(generatedFilePath)
-    doLast {
-        generatedFilePath.getParentFile().mkdirs()
-        def clientExtensionConfigContent = layout.buildDirectory.file("liferay-client-extension-build/${project.name}.client-extension-config.json").get().asFile.text.replaceAll(/[\r\n]+/, "").trim()
+	outputs.file(generatedFilePath)
+	doLast {
+		generatedFilePath.getParentFile().mkdirs()
+		def clientExtensionConfigContent = layout.buildDirectory.file("liferay-client-extension-build/${project.name}.client-extension-config.json").get().asFile.text.replaceAll(/[\r\n]+/, "").trim()
 
-        def valuesYamlContent = """
+		def valuesYamlContent = """
 clientExtensionConfig:
-    configJsons:
-        - |
-            ${clientExtensionConfigContent}
-    kind: Job
-    mountInitConfig: true
-    setupMainDomainOnCoreDNS: true
-    virtualInstanceId: "main.dxp.localtest.me"
+  configJsons:
+    - |
+      ${clientExtensionConfigContent}
+  kind: Job
+  mountInitConfig: true
+  setupMainDomainOnCoreDNS: true
+  virtualInstanceId: "main.dxp.localtest.me"
 env:
-    LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
+  LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
 image:
-    repository: registry:5000/${project.name}
+  repository: registry:5000/${project.name}
 """
 
-        generatedFilePath.write(valuesYamlContent)
-        println "Generated values yaml file: ${generatedFilePath}"
-    }
+		generatedFilePath.write(valuesYamlContent)
+		println "Generated values yaml file: ${generatedFilePath}"
+	}
 }
 
 tasks.named('buildClientExtensionZip', Zip) {
-    dependsOn tasks.generateValuesYamlFile
+	dependsOn tasks.generateValuesYamlFile
 
-    from(generatedFilePath.getParentFile()) {
-        include generatedFileName
-    }
-    println "Added ${generatedFileName} to buildClientExtensionZip task."
+	from(generatedFilePath.getParentFile()) {
+		include generatedFileName
+	}
+	println "Added ${generatedFileName} to buildClientExtensionZip task."
 }

@@ -3,9 +3,9 @@ def cleanSubprojects = task clean
 def deploySubprojects = task deploy
 
 subprojects {
-    afterEvaluate {
-        buildSubprojects.dependsOn it.tasks["build"]
-        cleanSubprojects.dependsOn it.tasks["clean"]
-        deploySubprojects.dependsOn it.tasks["deploy"]
-    }
+	afterEvaluate {
+		buildSubprojects.dependsOn it.tasks["build"]
+		cleanSubprojects.dependsOn it.tasks["clean"]
+		deploySubprojects.dependsOn it.tasks["deploy"]
+	}
 }

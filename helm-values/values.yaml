@@ -47,7 +47,7 @@ configmap:
     com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config: |
       host="liferay-default-rabbitmq"
       port=i"5672"
-      username="$[env:RABBITMQ_CLIENT_USERNAME]"
+      userName="$[env:RABBITMQ_CLIENT_USERNAME]"
       password="$[env:RABBITMQ_CLIENT_PASSWORD]"
     ep25cx-log4j-ext.xml: |
       <?xml version="1.0"?>

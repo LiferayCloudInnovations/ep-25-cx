@@ -33,19 +33,21 @@ public class MessageBrokerObjectEntryModelListener
 			Object associationClassPK)
 		throws ModelListenerException {
 
-		_log.info(
-			"onAfterAddAssociation " + classPK + " " + associationClassName +
-				" " + associationClassPK);
+		_log.error("onAfterAddAssociation NOT IMPLEMENTED!");
 	}
 
 	@Override
-	public void onAfterCreate(ObjectEntry model) throws ModelListenerException {
-		_log.info("onAfterCreate " + model);
+	public void onAfterCreate(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		_enqueuePayload("onAfterCreate", null, objectEntry);
 	}
 
 	@Override
-	public void onAfterRemove(ObjectEntry model) throws ModelListenerException {
-		_log.info("onAfterRemove " + model);
+	public void onAfterRemove(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		_enqueuePayload("onAfterRemove", objectEntry, null);
 	}
 
 	@Override
@@ -54,9 +56,7 @@ public class MessageBrokerObjectEntryModelListener
 			Object associationClassPK)
 		throws ModelListenerException {
 
-		_log.info(
-			"onAfterRemoveAssociation " + classPK + " " + associationClassName +
-				" " + associationClassPK);
+		_log.error("onAfterRemoveAssociation NOT IMPLEMENTED!");
 	}
 
 	@Override
@@ -64,33 +64,54 @@ public class MessageBrokerObjectEntryModelListener
 			ObjectEntry originalObjectEntry, ObjectEntry objectEntry)
 		throws ModelListenerException {
 
+		_enqueuePayload("onAfterUpdate", originalObjectEntry, objectEntry);
+	}
+
+	private void _enqueuePayload(
+			String event, ObjectEntry originalObjectEntry,
+			ObjectEntry objectEntry)
+		throws ModelListenerException {
+
 		PortalTrebuchet portalTrebuchet = _portalTrebuchet.get();
 
 		if (portalTrebuchet == null) {
-			_log.debug("onAfterUpdateEvent: PortalTrebuchet is not available");
+			_log.debug(event + ": message broker is not available");
 
 			return;
 		}
 
-		try {
-			long userId = PrincipalThreadLocal.getUserId();
+		long userId = PrincipalThreadLocal.getUserId();
 
-			if (userId == 0) {
+		if (userId == 0) {
+			if (objectEntry != null) {
 				userId = objectEntry.getUserId();
 			}
+			else if (originalObjectEntry != null) {
+				userId = originalObjectEntry.getUserId();
+			}
+		}
 
+		try {
 			ObjectDefinition objectDefinition =
 				_objectDefinitionLocalService.getObjectDefinition(
 					objectEntry.getObjectDefinitionId());
 
 			JSONObject payloadJSONObject = ObjectEntryUtil.getPayloadJSONObject(
-				_dtoConverterRegistry, _jsonFactory, "onAfterUpdate",
-				objectDefinition, objectEntry, originalObjectEntry, null,
+				_dtoConverterRegistry, _jsonFactory, event, objectDefinition,
+				objectEntry, originalObjectEntry, null,
 				_userLocalService.getUser(userId));
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"enqueuing jsonPayload: " +
+						String.valueOf(payloadJSONObject));
+			}
 
 			String queueName = objectDefinition.getName() + "Event";
 
-			portalTrebuchet.fire(objectEntry.getCompanyId(), payloadJSONObject, queueName, userId);
+			portalTrebuchet.fire(
+				objectEntry.getCompanyId(), payloadJSONObject, queueName,
+				userId);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
@@ -102,8 +123,7 @@ public class MessageBrokerObjectEntryModelListener
 
 	private static final Snapshot<PortalTrebuchet> _portalTrebuchet =
 		new Snapshot<>(
-			MessageBrokerObjectEntryModelListener.class,
-			PortalTrebuchet.class);
+			MessageBrokerObjectEntryModelListener.class, PortalTrebuchet.class);
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;

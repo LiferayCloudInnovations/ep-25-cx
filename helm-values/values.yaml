@@ -68,7 +68,7 @@ configmap:
     RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
     RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:
-  x-full-auto-scaling:
+  x-cx-rabbitmq-demo:
   - name: LIFERAY_DISABLE_TRIAL_LICENSE
     value: "true"
   - name: LIFERAY_JPDA_ENABLED
@@ -84,7 +84,7 @@ customEnv:
         name: liferay-default
         key: RABBITMQ_CLIENT_PASSWORD
 customInitContainers:
-  x-full-auto-scaling:
+  x-cx-rabbitmq-demo:
     - containerTemplate: |
         - command:
           - bash
@@ -104,7 +104,7 @@ customInitContainers:
           - mountPath: /mnt/local
             name: mount-local
 customVolumeMounts:
-  x-full-auto-scaling:
+  x-cx-rabbitmq-demo:
   - mountPath: /etc/liferay/mount/files/deploy/license.xml
     name: liferay-configmap
     subPath: license.xml
@@ -129,7 +129,7 @@ customVolumeMounts:
     name: liferay-configmap
     subPath: ep25cx-log4j-ext.xml
 customVolumes:
-  x-full-auto-scaling:
+  x-cx-rabbitmq-demo:
   - hostPath:
       path: /mnt/local
     name: mount-local

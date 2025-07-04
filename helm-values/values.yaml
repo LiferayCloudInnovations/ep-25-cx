@@ -92,8 +92,8 @@ customInitContainers:
           - |
             if [ -d /mnt/local/osgi/modules/ ]
             then
-              mkdir -p /temp/liferay/osgi/modules/
-              cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/deploy/
+              mkdir -p /temp/osgi/modules/
+              cp -fv /mnt/local/osgi/modules/*.jar /temp/osgi/modules/
             fi
           image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}
           imagePullPolicy: {{ .image.pullPolicy }}

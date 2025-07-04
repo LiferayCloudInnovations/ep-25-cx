@@ -83,6 +83,26 @@ customEnv:
       configMapKeyRef:
         name: liferay-default
         key: RABBITMQ_CLIENT_PASSWORD
+customInitContainers:
+  x-full-auto-scaling:
+    - containerTemplate: |
+        - command:
+          - bash
+          - -c
+          - |
+            if [ -d /mnt/local/osgi/modules/ ]
+            then
+              mkdir -p /temp/liferay/osgi/modules/
+              cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/deploy/
+            fi
+          image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}
+          imagePullPolicy: {{ .image.pullPolicy }}
+          name: liferay-deploy-modules
+          volumeMounts:
+          - mountPath: /temp
+            name: liferay-persistent-volume
+          - mountPath: /mnt/local
+            name: mount-local
 customVolumeMounts:
   x-full-auto-scaling:
   - mountPath: /etc/liferay/mount/files/deploy/license.xml
@@ -105,10 +125,9 @@ customVolumeMounts:
   - mountPath: /usr/local/liferay/scripts/pre-configure/999_troubleshooting.sh
     name: liferay-configmap
     subPath: 000_troubleshooting.sh
-  x-ep25cx-logging:
-    - mountPath: /opt/liferay/osgi/log4j/ep25cx-log4j-ext.xml
-      name: liferay-configmap
-      subPath: ep25cx-log4j-ext.xml
+  - mountPath: /opt/liferay/osgi/log4j/ep25cx-log4j-ext.xml
+    name: liferay-configmap
+    subPath: ep25cx-log4j-ext.xml
 customVolumes:
   x-full-auto-scaling:
   - hostPath:
@@ -512,26 +531,6 @@ dependencies:
       - mountPath: /usr/share/elasticsearch/plugins
         name: liferay-search-pvc
         subPath: plugins
-customInitContainers:
-    x-deploy-osgi-modules:
-      -   containerTemplate: |
-              -   command:
-                      -   bash
-                      -   -c
-                      -   |
-                              if [ -d /mnt/local/osgi/modules/ ]
-                              then
-                                mkdir -p /temp/liferay/osgi/modules/
-                                cp -fv /mnt/local/osgi/modules/*.jar /temp/liferay/deploy/
-                              fi
-                  image: {{ printf "%s:%s" .image.repository (.image.tag | toString) }}
-                  imagePullPolicy: {{ .image.pullPolicy }}
-                  name: liferay-deploy-modules
-                  volumeMounts:
-                      -   mountPath: /temp
-                          name: liferay-persistent-volume
-                      -   mountPath: /mnt/local
-                          name: mount-local
 ingress:
   enabled: true
   rules:

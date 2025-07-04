@@ -16,7 +16,7 @@ clientExtensionConfig:
   kind: Job
   mountInitConfig: true
   setupMainDomainOnCoreDNS: true
-  virtualInstanceId: "main.dxp.localtest.me"
+  virtualInstanceId: "main.dxp.lfr.dev"
 env:
   LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
 image:

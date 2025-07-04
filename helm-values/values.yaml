@@ -300,7 +300,7 @@ dependencies:
       ingress:
         enabled: true
         rules:
-        - host: rabbitmq.localtest.me
+        - host: rabbitmq.lfr.dev
           http:
             paths:
             - backend:
@@ -534,7 +534,7 @@ customInitContainers:
 ingress:
   enabled: true
   rules:
-  - host: "*.dxp.localtest.me"
+  - host: "*.dxp.lfr.dev"
     http:
       paths:
       - backend:
@@ -546,9 +546,9 @@ ingress:
         pathType: ImplementationSpecific
 portalProperties: |
   include-and-override=portal-developer.properties
-  company.default.virtual.host.mail.domain=main.dxp.localtest.me
-  company.default.virtual.host.name=main.dxp.localtest.me
-  company.default.web.id=main.dxp.localtest.me
+  company.default.virtual.host.mail.domain=main.dxp.lfr.dev
+  company.default.virtual.host.name=main.dxp.lfr.dev
+  company.default.web.id=main.dxp.lfr.dev
   web.server.display.node=true
 resources:
   limits:

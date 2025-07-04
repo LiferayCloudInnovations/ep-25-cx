@@ -26,6 +26,8 @@ ingress:
     enabled: false
     hosts: []
     tls: []
+job:
+    backoffLimit: 6
 labels: {}
 livenessProbe:
     httpGet:

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -ex
+
 for module in "$1"/*.jar
 do
     kubectl cp "$module" "$2":"$3" -n "$4"

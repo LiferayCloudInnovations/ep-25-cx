@@ -2,6 +2,7 @@ package com.liferay.portal.trebuchet.internal;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -74,22 +75,12 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		String destinationName = message.getDestinationName();
 
-		Object payload = message.getPayload();
-
-		if (!(payload instanceof JSONObject)) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					StringBundler.concat(
-						"Message payload for ", destinationName,
-						" is not a JSONObject: ", payload));
-			}
-
-			return;
-		}
-
 		try {
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+				JSONFactoryUtil.serialize(message));
+
 			_portalTrebuchet.fire(
-				companyId, (JSONObject)payload, destinationName, userId);
+				companyId, jsonObject, destinationName, userId);
 		}
 		catch (PortalException portalException) {
 			throw new MessageListenerException(portalException);

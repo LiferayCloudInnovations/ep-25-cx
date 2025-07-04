@@ -113,12 +113,12 @@ kubectl -n liferay-system delete pvc --selector "app.kubernetes.io/name=liferay-
    [queue dashboard](http://rabbitmq.localtest.me/#/queues)
 1. Notice that there are NO object events queued
 1. After logging in, deploy Client Extensions `make deploy-cx`
-1. You should see the `A7W6 Sample` object definition get added to Liferay
-1. Add/Update/Remove several `A7W6 Sample` objects in the objects content page
+1. You should see the `EP25 Sample` object definition get added to Liferay
+1. Add/Update/Remove several `EP25 Sample` objects in the objects content page
 1. View message broker [queue dashboard](http://rabbitmq.localtest.me/#/queues)
    and you should
-   [see a queue](http://rabbitmq.localtest.me/#/queues/%2F/C_A7W6SampleEvent)
-   for the object `A7W6 Sample`
+   [see a queue](http://rabbitmq.localtest.me/#/queues/%2F/C_EP25SampleEvent)
+   for the object `EP25 Sample`
 1. Click the `Get Messages` after putting in the number of events you wish to
    display
 

@@ -90,6 +90,8 @@ undeploy: undeploy-cx undeploy-dxp ## Clean up DXP and Client Extensions
 
 undeploy-cx: switch-context ## Clean up Client Extensions
 	@helm list -n liferay-system -q --filter "-cx" | xargs -r helm uninstall -n liferay-system
+	@kubectl -n liferay-system delete cm --selector "lxc.liferay.com/metadataType=ext-init"
 
 undeploy-dxp: switch-context ## Clean up DXP deployment
 	@helm list -n liferay-system -q --filter "liferay" | xargs -r helm uninstall -n liferay-system
+	@kubectl -n liferay-system delete cm --selector "lxc.liferay.com/metadataType=dxp"

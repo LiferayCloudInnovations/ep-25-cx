@@ -8,9 +8,8 @@
 
 ## Nice to Haves
 
--
--
--
+- fix /temp/liferay/deploy copy operation to use /temp/liferay/osgi/modules
+- delay k8s agent until scopes are hydrated (can remove the helm upgrade --wait && curl in Makefile)
 
 ## Bugs
 

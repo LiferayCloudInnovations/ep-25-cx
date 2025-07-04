@@ -6,12 +6,15 @@
 package com.liferay.portal.trebuchet.internal;
 
 import com.liferay.petra.executor.PortalExecutorManager;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
 import com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration;
 import com.rabbitmq.client.AMQP;
@@ -21,9 +24,11 @@ import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -51,10 +56,49 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 			_portalExecutorManager.getPortalExecutor(
 				RabbitMQPortalTrebuchet.class.getName());
 
+		Company company = _companyLocalService.fetchCompany(companyId);
+
+		if (company == null) {
+			return;
+		}
+
+		String virtualHostId = company.getWebId();
+
+		Connection connection = _connections.computeIfAbsent(
+			virtualHostId, theVirtualHostId -> {
+				ConnectionFactory connectionFactory = new ConnectionFactory();
+
+				connectionFactory.setAutomaticRecoveryEnabled(
+					_messageBrokerConfiguration.automaticRecoveryEnabled());
+				connectionFactory.setHost(_messageBrokerConfiguration.host());
+				connectionFactory.setPort(_messageBrokerConfiguration.port());
+				connectionFactory.setUsername(
+					_messageBrokerConfiguration.userName());
+				connectionFactory.setPassword(
+					_messageBrokerConfiguration.password());
+				connectionFactory.setVirtualHost(theVirtualHostId);
+
+				try {
+					return connectionFactory.newConnection();
+				}
+				catch (IOException ioException) {
+					if (_log.isErrorEnabled()) {
+						_log.error(ioException);
+					}
+				}
+				catch (TimeoutException timeoutException) {
+					if (_log.isErrorEnabled()) {
+						_log.error(timeoutException);
+					}
+				}
+
+				return null;
+			});
+
 		executorService.submit(
 			() -> {
-				try (Channel channel = _connection.createChannel()) {
-					getOrCreateQueue(channel, queue);
+				try (Channel channel = connection.createChannel()) {
+					channel.queueDeclare(queue, true, false, false, null);
 
 					String payload = payloadJSONObject.toString();
 
@@ -67,7 +111,7 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 					}
 				}
 				catch (Exception exception) {
-					_log.error(exception.getMessage(), exception);
+					_log.error(exception);
 				}
 			});
 	}
@@ -76,19 +120,6 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 	protected void activate(Map<String, Object> properties) throws Exception {
 		_messageBrokerConfiguration = ConfigurableUtil.createConfigurable(
 			MessageBrokerConfiguration.class, properties);
-
-		_connectionFactory = new ConnectionFactory();
-
-		_connectionFactory.setAutomaticRecoveryEnabled(
-			_messageBrokerConfiguration.automaticRecoveryEnabled());
-		_connectionFactory.setHost(_messageBrokerConfiguration.host());
-		_connectionFactory.setPort(_messageBrokerConfiguration.port());
-		_connectionFactory.setUsername(
-			_messageBrokerConfiguration.userName());
-		_connectionFactory.setPassword(
-			_messageBrokerConfiguration.password());
-
-		_connection = _connectionFactory.newConnection();
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Activated");
@@ -101,63 +132,27 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 			_log.debug("Deactivated");
 		}
 
-		try {
-			_connection.close();
-		}
-		catch (IOException ioException) {
-			if (_log.isErrorEnabled()) {
-				_log.error(ioException);
+		_connections.forEach((k, v) -> {
+			try {
+				v.close();
 			}
-		}
-	}
-
-	private void getOrCreateQueue(Channel channel, String queue)
-		throws IOException {
-
-		if (!doesQueueExist(channel, queue)) {
-			channel.queueDeclare(queue, true, false, false, null);
-		}
-	}
-
-	private boolean doesQueueExist(Channel channel, String queue)
-		throws IOException {
-
-		try {
-			channel.queueDeclarePassive(queue);
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					StringBundler.concat("Queue ", queue, " exist."));
-			}
-
-			return true;
-		}
-		catch (IOException ioException) {
-			if (ioException.getCause() instanceof AMQP.Channel.Close) {
-				AMQP.Channel.Close closeReason =
-					(AMQP.Channel.Close)ioException.getCause();
-
-				if (closeReason.getReplyCode() == AMQP.NOT_FOUND) {
-					if (_log.isErrorEnabled()) {
-						_log.error(
-							StringBundler.concat(
-								"Queue ", queue, " does not exist."),
-							ioException);
-					}
-
-					return false;
+			catch (IOException ioException) {
+				if (_log.isErrorEnabled()) {
+					_log.error(ioException);
 				}
 			}
+		});
 
-			throw ioException;
-		}
+		_connections.clear();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		RabbitMQPortalTrebuchet.class);
 
-	private Connection _connection;
-	private ConnectionFactory _connectionFactory;
+	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	private Map<String, Connection> _connections = new ConcurrentHashMap<>();
 
 	private MessageBrokerConfiguration _messageBrokerConfiguration;
 

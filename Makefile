@@ -68,6 +68,9 @@ deploy-dxp: copy-dxp-modules-to-local-mount ## Deploy DXP and sidecars into clus
 deploy-client-extensions: copy-client-extensions-to-local-mount ## Deploy Client extensions to cluster
 	@./bin/deploy_client_extensions "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
 
+clean-cx:
+	@helm uninstall -n liferay-system $(helm list -n liferay-system -q --filter '-cx$')
+
 clean-dxp:
 	@helm uninstall -n liferay-system liferay
 

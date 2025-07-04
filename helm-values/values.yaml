@@ -45,6 +45,7 @@ configmap:
       s3StorageClass="STANDARD"
       secretKey="objectstorage"
     com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config: |
+      automaticRecoveryEnabled=b"true"
       host="liferay-default-rabbitmq"
       port=i"5672"
       userName="$[env:RABBITMQ_CLIENT_USERNAME]"

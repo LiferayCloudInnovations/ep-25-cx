@@ -50,18 +50,7 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 
 		executorService.submit(
 			() -> {
-				ConnectionFactory connectionFactory = new ConnectionFactory();
-
-				connectionFactory.setAutomaticRecoveryEnabled(
-					_messageBrokerConfiguration.automaticRecoveryEnabled());
-				connectionFactory.setHost(_messageBrokerConfiguration.host());
-				connectionFactory.setPort(_messageBrokerConfiguration.port());
-				connectionFactory.setUsername(
-					_messageBrokerConfiguration.userName());
-				connectionFactory.setPassword(
-					_messageBrokerConfiguration.password());
-
-				try (Connection connection = connectionFactory.newConnection();
+				try (Connection connection = _connectionFactory.newConnection();
 					Channel channel = connection.createChannel()) {
 
 					channel.queueDeclare(queue, true, false, false, null);
@@ -87,6 +76,17 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 		_messageBrokerConfiguration = ConfigurableUtil.createConfigurable(
 			MessageBrokerConfiguration.class, properties);
 
+		_connectionFactory = new ConnectionFactory();
+
+		_connectionFactory.setAutomaticRecoveryEnabled(
+			_messageBrokerConfiguration.automaticRecoveryEnabled());
+		_connectionFactory.setHost(_messageBrokerConfiguration.host());
+		_connectionFactory.setPort(_messageBrokerConfiguration.port());
+		_connectionFactory.setUsername(
+			_messageBrokerConfiguration.userName());
+		_connectionFactory.setPassword(
+			_messageBrokerConfiguration.password());
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("Activated");
 		}
@@ -94,6 +94,8 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		RabbitMQPortalTrebuchet.class);
+
+	private ConnectionFactory _connectionFactory;
 
 	private MessageBrokerConfiguration _messageBrokerConfiguration;
 

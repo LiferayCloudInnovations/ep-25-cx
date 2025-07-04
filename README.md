@@ -77,17 +77,41 @@ kubectl -n liferay-system delete pvc --selector "app.kubernetes.io/name=liferay-
 
 ### Hello Event Queue World Demo Script using `make`
 
-1. Start K3d cluster `make start-cluster`
-1. Create developer license `make license` Or if you have your own license copy
-   it to file named `license.xml`
-1. Deploy DXP to Cluster `make deploy-dxp`
-1. View Liferay logs `stern pod/liferay-default-0 -c liferay-default`
+1. Start K3d cluster
+
+   ```shell
+   make start-cluster
+   ```
+
+1. Create local developer license (or if you have your own license copy it to
+   file named `license.xml`)
+
+   ```shell
+   make license
+   ```
+
+1. Deploy DXP to Cluster
+
+   ```shell
+   make deploy-dxp
+   ```
+
+1. View Liferay logs
+
+   ```shell
+   stern pod/liferay-default-0 -c liferay-default
+   ```
+
 1. [**Login** to DXP](http://main.dxp.localtest.me)
 1. To get the password use
-   `kubectl get secrets liferay-default -o jsonpath='{.data.LIFERAY_DEFAULT_PERIOD_ADMIN_PERIOD_PASSWORD}' | base64 -d && echo`
+
+   ```shell
+   kubectl get secrets liferay-default -o jsonpath='{.data.LIFERAY_DEFAULT_PERIOD_ADMIN_PERIOD_PASSWORD}' | base64 -d && echo
+   ```
+
 1. **View** the message broker's
    [queue dashboard](http://rabbitmq.localtest.me/#/queues)
-1. **Notice** that there are **NO** object events queued
+1. Notice that there are NO object events queued
 1. After logging in, deploy Client Extensions `make deploy-cx`
 1. You should see the `A7W6 Sample` object definition get added to Liferay
 1. Add/Update/Remove several `A7W6 Sample` objects in the objects content page
@@ -97,3 +121,21 @@ kubectl -n liferay-system delete pvc --selector "app.kubernetes.io/name=liferay-
    for the object `A7W6 Sample`
 1. Click the `Get Messages` after putting in the number of events you wish to
    display
+
+### Bring Demo Online with "One Shot"
+
+```shell
+make start-cluster deploy-dxp deploy-cx
+```
+
+### Undeploy DXP and Client Extensions
+
+```shell
+make undeploy-cx undeploy-dxp
+```
+
+### Clean Up Everything
+
+```shell
+make clean
+```

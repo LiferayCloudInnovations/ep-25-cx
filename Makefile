@@ -57,15 +57,13 @@ deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP
 		--set-file "configmap.data.license\.xml=license.xml" \
 		--wait \
 		-f helm-values/values.yaml
-	@echo "Pinging Liferay to fix oauth scopes..."
-	@curl -w "%{http_code}" -s -o /dev/null http://${MAIN_DOMAIN} && echo
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules
 	@cd ./ep25cx-workspace/ && ./gradlew :modules:build :modules:deploy -x test -x check
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-	
+
 hot-deploy-dxp-modules: copy-dxp-modules-to-local-mount switch-context ## Build and Copy DXP modules into running container
 	@./bin/kubectl_copy_all "${PWD}/${LOCAL_MOUNT}/osgi/modules" liferay-default-0 /opt/liferay/osgi/modules liferay-system
 

@@ -56,6 +56,7 @@ deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP
 		--set "image.tag=${DXP_IMAGE_TAG}" \
 		--set-file "configmap.data.license\.xml=license.xml" \
 		--wait \
+		--timeout 10m \
 		-f helm-values/values.yaml
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules

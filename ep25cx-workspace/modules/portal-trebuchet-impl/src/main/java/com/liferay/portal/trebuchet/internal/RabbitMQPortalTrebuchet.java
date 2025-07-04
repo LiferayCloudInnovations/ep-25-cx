@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -50,8 +51,7 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 
 		executorService.submit(
 			() -> {
-				try (Connection connection = _connectionFactory.newConnection();
-					Channel channel = connection.createChannel()) {
+				try (Channel channel = _connection.createChannel()) {
 
 					channel.queueDeclare(queue, true, false, false, null);
 
@@ -87,14 +87,24 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 		_connectionFactory.setPassword(
 			_messageBrokerConfiguration.password());
 
+		_connection = _connectionFactory.newConnection();
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("Activated");
+		}
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Deactivated");
 		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		RabbitMQPortalTrebuchet.class);
 
+	private Connection _connection;
 	private ConnectionFactory _connectionFactory;
 
 	private MessageBrokerConfiguration _messageBrokerConfiguration;

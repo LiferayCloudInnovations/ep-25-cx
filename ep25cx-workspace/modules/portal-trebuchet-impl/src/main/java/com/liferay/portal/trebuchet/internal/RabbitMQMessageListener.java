@@ -23,10 +23,8 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"destination.name=destination.workflow_definition_link",
 		"destination.name=destination.workflow_timer",
-		"destination.name=liferay/adaptive_media_processor",
 		"destination.name=liferay/antivirus_batch",
 		"destination.name=liferay/asset_auto_tagger",
-		"destination.name=liferay/async_service",
 		"destination.name=liferay/background_task_status",
 		"destination.name=liferay/background_task",
 		"destination.name=liferay/commerce_base_price_list",
@@ -39,12 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 		"destination.name=liferay/ct_score",
 		"destination.name=liferay/ddm_structure_reindex",
 		"destination.name=liferay/dispatch/executor",
-		"destination.name=liferay/document_library_audio_processor",
 		"destination.name=liferay/document_library_deletion",
-		"destination.name=liferay/document_library_image_processor",
-		"destination.name=liferay/document_library_pdf_processor",
-		"destination.name=liferay/document_library_raw_metadata_processor",
-		"destination.name=liferay/document_library_video_processor",
 		"destination.name=liferay/export_import_lifecycle_event_async",
 		"destination.name=liferay/export_import_lifecycle_event_sync",
 		"destination.name=liferay/flags",
@@ -75,6 +68,11 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		String destinationName = message.getDestinationName();
 
+		if (_log.isDebugEnabled()) {
+			_log.debug(StringBundler.concat(
+				"Queuing a message to ", destinationName, ", message", message));
+		}
+
 		try {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 				JSONFactoryUtil.serialize(message));
@@ -83,7 +81,9 @@ public class RabbitMQMessageListener implements MessageListener {
 				companyId, jsonObject, destinationName, userId);
 		}
 		catch (PortalException portalException) {
-			throw new MessageListenerException(portalException);
+			if (_log.isErrorEnabled()) {
+				_log.error(portalException);
+			}
 		}
 	}
 

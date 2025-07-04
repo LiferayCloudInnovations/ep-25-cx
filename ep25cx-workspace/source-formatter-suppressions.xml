@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<suppressions>
+	<source-check>
+		<suppress checks="WhitespaceCheck" files="client-extensions/ep25cx-batch/build\.gradle" />
+	</source-check>
+</suppressions>

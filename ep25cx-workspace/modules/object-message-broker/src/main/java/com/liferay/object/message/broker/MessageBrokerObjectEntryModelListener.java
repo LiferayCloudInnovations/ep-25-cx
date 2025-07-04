@@ -47,7 +47,7 @@ public class MessageBrokerObjectEntryModelListener
 	public void onAfterRemove(ObjectEntry objectEntry)
 		throws ModelListenerException {
 
-		_enqueuePayload("onAfterRemove", objectEntry, null);
+		_enqueuePayload("onAfterRemove", null, objectEntry);
 	}
 
 	@Override
@@ -107,11 +107,9 @@ public class MessageBrokerObjectEntryModelListener
 						String.valueOf(payloadJSONObject));
 			}
 
-			String queueName = objectDefinition.getName() + "Event";
-
 			portalTrebuchet.fire(
-				objectEntry.getCompanyId(), payloadJSONObject, queueName,
-				userId);
+				objectEntry.getCompanyId(), payloadJSONObject,
+				objectDefinition.getName() + "Event", userId);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);

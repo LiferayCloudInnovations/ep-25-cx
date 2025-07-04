@@ -8,10 +8,10 @@ LOCAL_MOUNT := tmp/mnt/local
 
 ### TARGETS ###
 
-clean: delete-cluster clean-dxp-modules clean-cx clean-tmp ## Clean up everything
+clean: clean-cluster clean-dxp-modules clean-cx-zips clean-tmp ## Clean up everything
 
-undeploy-cx: switch-context ## Clean up Client Extensions
-	@helm uninstall -n liferay-system $(helm list -n liferay-system -q --filter '-cx$')
+clean-cluster: ## Delete k3d cluster
+	@k3d cluster delete "${CLUSTER_NAME}" || true
 
 clean-cx-zips: ## Clean Client Extensions Zips
 	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
@@ -41,9 +41,6 @@ copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
 
 cx-zips: clean-cx-zips
 	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:build :client-extensions:deploy -x test -x check
-
-delete-cluster: ## Delete k3d cluster
-	@k3d cluster delete "${CLUSTER_NAME}" || true
 
 deploy-cx: copy-cx-to-local-mount patch-coredns ## Deploy Client extensions to cluster
 	@./bin/deploy_cx "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
@@ -87,5 +84,8 @@ start-cluster: mkdir-local-mount ## Start k3d cluster
 switch-context: ## Switch kubectl context to k3d cluster
 	@kubectx k3d-${CLUSTER_NAME}
 
+undeploy-cx: switch-context ## Clean up Client Extensions
+	@helm list -n liferay-system -q --filter "-cx" | xargs -r helm uninstall -n liferay-system
+
 undeploy-dxp: switch-context ## Clean up DXP deployment
-	@helm uninstall -n liferay-system liferay
+	@helm list -n liferay-system -q --filter "liferay" | xargs -r helm uninstall -n liferay-system

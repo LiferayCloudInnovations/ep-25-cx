@@ -43,7 +43,9 @@ copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
 cx-zips: clean-cx-zips
 	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:build :client-extensions:deploy -x test -x check
 
-deploy-cx: copy-cx-to-local-mount patch-coredns fix-oauth-scopes ## Deploy Client extensions to cluster
+deploy: deploy-dxp deploy-cx ## Deploy DXP and Client Extensions to cluster (Make sure you 'make start-cluster' first)
+
+deploy-cx: copy-cx-to-local-mount patch-coredns ## Deploy Client extensions to cluster
 	@./bin/deploy_cx "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
 
 deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP and sidecars into cluster (Make sure you 'make start-cluster' first)
@@ -53,14 +55,13 @@ deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP
 		--namespace liferay-system \
 		--set "image.tag=${DXP_IMAGE_TAG}" \
 		--set-file "configmap.data.license\.xml=license.xml" \
+		--wait \
 		-f helm-values/values.yaml
+	@echo "Pinging Liferay to fix oauth scopes..."
+	@curl -w "%{http_code}" -s -o /dev/null http://${MAIN_DOMAIN} && echo
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules
 	@cd ./ep25cx-workspace/ && ./gradlew :modules:build :modules:deploy -x test -x check
-
-fix-oauth-scopes: ## Fix OAuth scopes in Liferay
-	@echo "Pinging Liferay to fix oauth scopes..."
-	@curl -w "%{http_code}" -s -o /dev/null http://${MAIN_DOMAIN} && echo
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -69,11 +70,7 @@ hot-deploy-dxp-modules: copy-dxp-modules-to-local-mount switch-context ## Build 
 	@./bin/kubectl_copy_all "${PWD}/${LOCAL_MOUNT}/osgi/modules" liferay-default-0 /opt/liferay/osgi/modules liferay-system
 
 license:
-	@stat license.xml &>/dev/null || \
-		docker container rm -f liferay-dxp-latest && \
-		docker create --pull always --name liferay-dxp-latest liferay/dxp:latest && \
-		docker export liferay-dxp-latest | tar -xv --strip-components=3 --wildcards -C . opt/liferay/deploy/*.xml && \
-		mv trial-dxp-license*.xml license.xml
+	@./bin/extract_license
 
 mkdir-local-mount: ## Create k3d local mount folder
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}"
@@ -89,6 +86,8 @@ start-cluster: mkdir-local-mount ## Start k3d cluster
 
 switch-context: ## Switch kubectl context to k3d cluster
 	@kubectx k3d-${CLUSTER_NAME}
+
+undeploy: undeploy-cx undeploy-dxp ## Clean up DXP and Client Extensions
 
 undeploy-cx: switch-context ## Clean up Client Extensions
 	@helm list -n liferay-system -q --filter "-cx" | xargs -r helm uninstall -n liferay-system

@@ -587,6 +587,7 @@ portalProperties: |
   company.default.virtual.host.name=main.dxp.localtest.me
   company.default.web.id=main.dxp.localtest.me
   web.server.display.node=true
+  web.server.protocol=http
 resources:
   limits:
     cpu: 4000m

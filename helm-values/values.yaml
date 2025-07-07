@@ -45,6 +45,7 @@ configmap:
       s3StorageClass="STANDARD"
       secretKey="objectstorage"
     com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration.config: |
+      automaticRecoveryEnabled=b"true"
       host="liferay-default-rabbitmq"
       port=i"5672"
       userName="$[env:RABBITMQ_CLIENT_USERNAME]"
@@ -68,9 +69,10 @@ configmap:
     010_init_a_default_rabbitmq_user.sh: |
       #!/usr/bin/env bash
       echo "Adding Liferay Client User ${RABBITMQ_CLIENT_USERNAME} to RabbitMQ"
-      rabbitmqctl add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}" || true
-      rabbitmqctl set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management' || true
-      rabbitmqctl set_permissions --vhost '/' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*" || true
+      rabbitmqctl --quiet add_vhost main.dxp.localtest.me
+      rabbitmqctl --quiet add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}" || true
+      rabbitmqctl --quiet set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management' || true
+      rabbitmqctl --quiet set_permissions --vhost 'main.dxp.localtest.me' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*" || true
     RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
     RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:
@@ -353,12 +355,12 @@ dependencies:
               path: /
               pathType: ImplementationSpecific
       livenessProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_local_alarms
+        tcpSocket:
+          port: 5672
         initialDelaySeconds: 40
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 6
       podSecurityContext:
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
@@ -370,12 +372,12 @@ dependencies:
         name: management
         protocol: TCP
       readinessProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_running
+        tcpSocket:
+          port: 5672
         initialDelaySeconds: 10
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 6
       replicaCount: 1
       resources:
         limits:
@@ -409,14 +411,12 @@ dependencies:
           targetPort: management
         type: ClusterIP
       startupProbe:
-        exec:
-          command:
-          - sh
-          - -c
-          - rabbitmq-diagnostics -q check_port_connectivity
+        tcpSocket:
+          port: 5672
         initialDelaySeconds: 2
-        failureThreshold: 10
-        periodSeconds: 2
+        failureThreshold: 15
+        periodSeconds: 5
+        timeoutSeconds: 5
       storage: 1Gi
       updateStrategy:
         type: RollingUpdate

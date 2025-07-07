@@ -56,16 +56,15 @@ deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP
 		--set "image.tag=${DXP_IMAGE_TAG}" \
 		--set-file "configmap.data.license\.xml=license.xml" \
 		--wait \
+		--timeout 10m \
 		-f helm-values/values.yaml
-	@echo "Pinging Liferay to fix oauth scopes..."
-	@curl -w "%{http_code}" -s -o /dev/null http://${MAIN_DOMAIN} && echo
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules
 	@cd ./ep25cx-workspace/ && ./gradlew :modules:build :modules:deploy -x test -x check
 
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-	
+
 hot-deploy-dxp-modules: copy-dxp-modules-to-local-mount switch-context ## Build and Copy DXP modules into running container
 	@./bin/kubectl_copy_all "${PWD}/${LOCAL_MOUNT}/osgi/modules" liferay-default-0 /opt/liferay/osgi/modules liferay-system
 
@@ -91,6 +90,8 @@ undeploy: undeploy-cx undeploy-dxp ## Clean up DXP and Client Extensions
 
 undeploy-cx: switch-context ## Clean up Client Extensions
 	@helm list -n liferay-system -q --filter "-cx" | xargs -r helm uninstall -n liferay-system
+	@kubectl -n liferay-system delete cm --selector "lxc.liferay.com/metadataType=ext-init"
 
 undeploy-dxp: switch-context ## Clean up DXP deployment
 	@helm list -n liferay-system -q --filter "liferay" | xargs -r helm uninstall -n liferay-system
+	@kubectl -n liferay-system delete cm --selector "lxc.liferay.com/metadataType=dxp"

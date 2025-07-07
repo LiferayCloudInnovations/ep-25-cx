@@ -64,9 +64,20 @@ public class RabbitMQMessageListener implements MessageListener {
 		long companyId = GetterUtil.getLong(
 			message.get("companyId"), CompanyThreadLocal.getCompanyId());
 
-		long userId = _getUserId(message);
-
 		String destinationName = message.getDestinationName();
+
+		if (companyId <= 0) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(StringBundler.concat(
+					"Skipping message to ", destinationName,
+					" because it does not contain a valid companyId: ",
+					message));
+			}
+
+			return;
+		}
+
+		long userId = _getUserId(message);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(StringBundler.concat(

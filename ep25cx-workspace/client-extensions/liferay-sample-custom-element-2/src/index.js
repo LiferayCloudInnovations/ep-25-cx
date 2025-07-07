@@ -6,7 +6,6 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 
-import Comic from './common/components/Comic.js';
 import DadJoke from './common/components/DadJoke.js';
 import api from './common/services/liferay/api.js';
 import {Liferay} from './common/services/liferay/liferay.js';
@@ -29,8 +28,6 @@ const App = ({route}) => {
 
 			{Liferay.ThemeDisplay.isSignedIn() && (
 				<div>
-					<Comic />
-
 					<hr />
 
 					<DadJoke />

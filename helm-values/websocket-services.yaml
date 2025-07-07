@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: liferay-default-rabbitmq-ws
+  namespace: liferay-system
+spec:
+  selector:
+    app: liferay-default-rabbitmq
+    app.kubernetes.io/instance: liferay
+    app.kubernetes.io/name: liferay-default
+  ports:
+    - name: mqtt
+      protocol: TCP
+      port: 15675
+      targetPort: mqtt
+    - name: stomp
+      protocol: TCP
+      port: 15674
+      targetPort: stomp
+  type: LoadBalancer

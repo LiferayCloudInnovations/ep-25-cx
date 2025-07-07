@@ -57,6 +57,7 @@ deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP
 		--wait \
 		--timeout 10m \
 		-f helm-values/values.yaml
+	@kubectl apply -f ./helm-values/websocket-services.yaml
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules
 	@cd ./ep25cx-workspace/ && ./gradlew :modules:build :modules:deploy -x test -x check
@@ -80,6 +81,8 @@ patch-coredns: switch-context ## Patch CoreDNS to resolve hostnames
 start-cluster: mkdir-local-mount ## Start k3d cluster
 	@k3d cluster create "${CLUSTER_NAME}" \
 		--port 80:80@loadbalancer \
+		--port 15674:15674@loadbalancer \
+		--port 15675:15675@loadbalancer \
 		--registry-create registry:5000 \
 		--volume "${PWD}/${LOCAL_MOUNT}:/mnt/local@all:*"
 

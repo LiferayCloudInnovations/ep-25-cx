@@ -5,7 +5,6 @@ SHELL = bash
 CLUSTER_NAME := ep25cx
 DXP_IMAGE_TAG := 7.4.13-u132
 LOCAL_MOUNT := tmp/mnt/local
-MAIN_DOMAIN := main.dxp.localtest.me
 
 ### TARGETS ###
 
@@ -75,7 +74,8 @@ mkdir-local-mount: ## Create k3d local mount folder
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}"
 
 patch-coredns: switch-context ## Patch CoreDNS to resolve hostnames
-	@kubectl get cm coredns -n kube-system -o yaml | sed '/.*host.k3d.internal/ { p; s/host.k3d.internal/${MAIN_DOMAIN}/; }' | kubectl apply -f - && kubectl rollout restart deployment coredns -n kube-system
+	@kubectl apply -f ./helm-values/coredns-custom.yaml
+	@kubectl rollout restart deployment coredns -n kube-system
 
 start-cluster: mkdir-local-mount ## Start k3d cluster
 	@k3d cluster create "${CLUSTER_NAME}" \

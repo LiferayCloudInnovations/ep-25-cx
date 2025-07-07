@@ -392,10 +392,6 @@ dependencies:
     source: statefulset
     statefulset:
       env:
-      - name: RABBITMQ_USERNAME
-        value: rabbitmq
-      - name: RABBITMQ_PASSWORD
-        value: rabbitmq
       - name: RABBITMQ_CLIENT_USERNAME
         valueFrom:
           configMapKeyRef:
@@ -408,6 +404,12 @@ dependencies:
             key: RABBITMQ_CLIENT_PASSWORD
       - name: RABBITMQ_LOAD_DEFINITIONS
         value: "yes"
+      - name: RABBITMQ_PASSWORD
+        value: rabbitmq
+      - name: RABBITMQ_PLUGINS
+        value: ",rabbitmq_management,rabbitmq_management_agent,rabbitmq_web_dispatch,rabbitmq_stomp,rabbitmq_web_stomp,rabbitmq_mqtt,rabbitmq_web_mqtt"
+      - name: RABBITMQ_USERNAME
+        value: rabbitmq
       image:
         repository: bitnami/rabbitmq
         tag: 4.1.1-debian-12-r2
@@ -441,6 +443,12 @@ dependencies:
         protocol: TCP
       - containerPort: 15672
         name: management
+        protocol: TCP
+      - containerPort: 15674
+        name: stomp
+        protocol: TCP
+      - containerPort: 15675
+        name: mqtt
         protocol: TCP
       readinessProbe:
         tcpSocket:
@@ -480,6 +488,14 @@ dependencies:
           port: 15672
           protocol: TCP
           targetPort: management
+        - name: mqtt
+          port: 15675
+          protocol: TCP
+          targetPort: mqtt
+        - name: stomp
+          port: 15674
+          protocol: TCP
+          targetPort: stomp
         type: ClusterIP
       startupProbe:
         tcpSocket:
@@ -654,6 +670,20 @@ ingress:
             port:
               name: http
         path: /
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: liferay-default-rabbitmq
+            port:
+              name: mqtt
+        path: /p/mqtt
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: liferay-default-rabbitmq
+            port:
+              name: stomp
+        path: /p/stomp
         pathType: ImplementationSpecific
 portalProperties: |
   include-and-override=portal-developer.properties

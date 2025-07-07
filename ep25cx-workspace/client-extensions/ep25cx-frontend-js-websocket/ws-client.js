@@ -7,7 +7,7 @@ import('https://ga.jspm.io/npm:@stomp/stompjs@7.0.0/esm6/index.js').then((mod) =
     connectHeaders: {
       login: 'lfrrabbitmq',
       passcode: 'lfrrabbitmq',
-	  host: location.hostname,
+      host: location.hostname,
     },
     onConnect: () => {
       client.subscribe('C_EP25SampleEvent', message =>

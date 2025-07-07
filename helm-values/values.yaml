@@ -65,14 +65,83 @@ configmap:
         </Loggers>
       </Configuration>
     rabbitmq.conf: |
-      # config
-    010_init_a_default_rabbitmq_user.sh: |
-      #!/usr/bin/env bash
-      echo "Adding Liferay Client User ${RABBITMQ_CLIENT_USERNAME} to RabbitMQ"
-      rabbitmqctl --quiet add_vhost main.dxp.localtest.me
-      rabbitmqctl --quiet add_user "${RABBITMQ_CLIENT_USERNAME}" "${RABBITMQ_CLIENT_PASSWORD}" || true
-      rabbitmqctl --quiet set_user_tags "${RABBITMQ_CLIENT_USERNAME}" 'management' || true
-      rabbitmqctl --quiet set_permissions --vhost 'main.dxp.localtest.me' "${RABBITMQ_CLIENT_USERNAME}" ".*" ".*" ".*" || true
+      ## Clustering
+      cluster_partition_handling = ignore
+
+      ## Networking
+      listeners.tcp.default = 5672
+
+      ## Management
+      management.tcp.ip = 0.0.0.0
+      management.tcp.port = 15672
+
+      ## Resource limits
+      # Set a free disk space limit relative to total available RAM
+      disk_free_limit.relative = 1.0
+    rabbitmq-definitions.json: |
+      {
+        "permissions": [
+          {
+            "configure": ".*",
+            "read": ".*",
+            "user": "lfrrabbitmq",
+            "vhost": "main.dxp.localtest.me",
+            "write": ".*"
+          },
+          {
+            "configure": ".*",
+            "read": ".*",
+            "user": "rabbitmq",
+            "vhost": "/",
+            "write": ".*"
+          }
+        ],
+        "bindings": [],
+        "queues": [],
+        "parameters": [],
+        "policies": [],
+        "rabbitmq_version": "4.1.1",
+        "rabbit_version": "4.1.1",
+        "exchanges": [],
+        "vhosts": [
+          {
+            "limits": [],
+            "metadata": {
+              "description": "",
+              "tags": [],
+              "default_queue_type": "classic"
+            },
+            "name": "main.dxp.localtest.me"
+          },
+          {
+            "limits": [],
+            "metadata": {
+              "description": "Default virtual host",
+              "tags": [],
+              "default_queue_type": "classic"
+            },
+            "name": "/"
+          }
+        ],
+        "users": [
+          {
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "limits": {},
+            "name": "lfrrabbitmq",
+            "password_hash": "CDbuMB9NfMCArTzqYA785kG4lgnQPXbEI380eLMivwF78gti",
+            "tags": ["management"]
+          },
+          {
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "limits": {},
+            "name": "rabbitmq",
+            "password_hash": "uwUMHfORJ/YGt+4wA9mZjUiWve+LXs1DMmCZYT/PRNSeMLfc",
+            "tags": ["administrator"]
+          }
+        ],
+        "global_parameters": [{ "name": "cluster_tags", "value": [] }],
+        "topic_permissions": []
+      }
     RABBITMQ_CLIENT_USERNAME: lfrrabbitmq
     RABBITMQ_CLIENT_PASSWORD: lfrrabbitmq
 customEnv:
@@ -337,6 +406,8 @@ dependencies:
           configMapKeyRef:
             name: liferay-default
             key: RABBITMQ_CLIENT_PASSWORD
+      - name: RABBITMQ_LOAD_DEFINITIONS
+        value: "yes"
       image:
         repository: bitnami/rabbitmq
         tag: 4.1.1-debian-12-r2
@@ -433,21 +504,24 @@ dependencies:
       - mountPath: /bitnami/rabbitmq
         name: liferay-rabbitmq-pvc
         subPath: rabbitmq/data
-      - mountPath: /opt/bitnami/rabbitmq/etc/rabbitmq
-        name: liferay-rabbitmq-pvc
-        subPath: rabbitmq/config
+      - mountPath: /bitnami/rabbitmq/conf/custom.conf
+        name: liferay-configmap
+        subPath: rabbitmq.conf
       - mountPath: /opt/bitnami/rabbitmq/.rabbitmq
         name: liferay-rabbitmq-pvc
         subPath: rabbitmq/home
+      - mountPath: /opt/bitnami/rabbitmq/etc/rabbitmq
+        name: liferay-rabbitmq-pvc
+        subPath: rabbitmq/config
+      - mountPath: /app/load_definition.json
+        name: liferay-configmap
+        subPath: rabbitmq-definitions.json
       - mountPath: /opt/bitnami/rabbitmq/var/lib/rabbitmq
         name: liferay-rabbitmq-pvc
         subPath: system/var
       - mountPath: /tmp
         name: liferay-rabbitmq-pvc
         subPath: system/tmp
-      - mountPath: /docker-entrypoint-initdb.d/010_init_a_default_rabbitmq_user.sh
-        name: liferay-configmap
-        subPath: 010_init_a_default_rabbitmq_user.sh
       volumes:
       - configMap:
           name: liferay-default

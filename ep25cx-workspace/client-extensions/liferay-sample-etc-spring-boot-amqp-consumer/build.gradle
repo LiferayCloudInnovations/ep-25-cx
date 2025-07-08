@@ -1,0 +1,92 @@
+buildscript {
+	dependencies {
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.defaults", version: "latest.release"
+		classpath group: "org.springframework.boot", name: "spring-boot-gradle-plugin", version: "3.2.5"
+	}
+
+	repositories {
+		maven {
+			url new File(rootProject.projectDir, "../../.m2-tmp")
+		}
+
+		maven {
+			url "https://repository-cdn.liferay.com/nexus/content/groups/public"
+		}
+	}
+}
+
+apply plugin: "com.liferay.source.formatter"
+apply plugin: "java-library"
+apply plugin: "org.springframework.boot"
+
+ext {
+	springBootVersion = "3.2.5"
+}
+
+dependencies {
+	implementation "com.liferay:com.liferay.client.extension.util.spring.boot3:latest.release"
+	implementation "com.liferay:org.apache.commons.logging:1.2.LIFERAY-PATCHED-2"
+	implementation "net.datafaker:datafaker:1.9.0"
+	implementation "org.json:json:20231013"
+
+	implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-amqp:${springBootVersion}"
+}
+
+repositories {
+	maven {
+		url new File(rootProject.projectDir, "../../.m2-tmp")
+	}
+
+	maven {
+		url "https://repository-cdn.liferay.com/nexus/content/groups/public"
+	}
+}
+
+def generatedFileName = "cx-values.yaml"
+def generatedFilePath = layout.buildDirectory.file("tmp/${generatedFileName}").get().asFile
+
+tasks.register('generateValuesYamlFile') {
+	outputs.file(generatedFilePath)
+	doLast {
+		generatedFilePath.getParentFile().mkdirs()
+		def clientExtensionConfigContent = layout.buildDirectory.file("liferay-client-extension-build/${project.name}.client-extension-config.json").get().asFile.text.replaceAll(/[\r\n]+/, "").trim()
+
+		def valuesYamlContent = """
+clientExtensionConfig:
+  configJsons:
+    - |
+      ${clientExtensionConfigContent}
+  kind: Deployment
+  mainDomain: "${project.name}.localtest.me"
+  mountInitConfig: true
+  virtualInstanceId: "main.dxp.localtest.me"
+image:
+  repository: registry:5000/${project.name}
+ingress:
+    enabled: true
+livenessProbe:
+    httpGet:
+        path: /ready
+readinessProbe:
+    httpGet:
+        path: /ready
+service:
+    enabled: true
+    port: 58081
+"""
+
+		generatedFilePath.write(valuesYamlContent)
+	}
+}
+
+tasks.named('buildClientExtensionZip', Zip) {
+	dependsOn tasks.generateValuesYamlFile
+
+	from(generatedFilePath.getParentFile()) {
+		include generatedFileName
+	}
+}

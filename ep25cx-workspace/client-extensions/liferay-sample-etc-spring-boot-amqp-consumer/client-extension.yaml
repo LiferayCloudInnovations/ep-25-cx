@@ -1,0 +1,9 @@
+assemble:
+    -   fromTask: bootJar
+liferay-sample-etc-spring-boot-ampq-consumer-oauth-application-user-agent:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay Sample Etc Spring Boot AMQP Consumer OAuth Application User Agent
+    scopes:
+        -   Liferay.Headless.Admin.User.everything
+    type: oAuthApplicationHeadlessServer

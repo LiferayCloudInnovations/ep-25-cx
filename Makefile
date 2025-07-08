@@ -8,15 +8,10 @@ LOCAL_MOUNT := tmp/mnt/local
 
 ### TARGETS ###
 
-clean: clean-cluster clean-dxp-modules clean-cx-zips clean-tmp ## Clean up everything
+clean: clean-cluster clean-dxp-modules clean-tmp ## Clean up everything
 
 clean-cluster: ## Delete k3d cluster
 	@k3d cluster delete "${CLUSTER_NAME}" || true
-
-clean-cx-zips: ## Clean Client Extensions Zips
-	@rm -rf "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
-	@rm -rf "${PWD}/${TMP_DIR}/cx_build"
-	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:clean
 
 clean-data: switch-context undeploy-dxp ## Clean up data in the cluster
 	@kubectl delete pvc --selector "app.kubernetes.io/name=liferay-default" -n liferay-system
@@ -31,23 +26,16 @@ clean-license:
 clean-tmp: ## Create k3d tmp folder
 	@rm -rf "${PWD}/tmp"
 
-copy-cx-to-local-mount: cx-zips ## Copy client extensions to local mount
-	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
-	@cp -fv ./ep25cx-workspace/bundles/osgi/client-extensions/* "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
-
 copy-dxp-modules-to-local-mount: dxp-modules ## Copy DXP modulesd to local mount
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}/osgi/modules"
 	@cp -fv ./ep25cx-workspace/bundles/osgi/modules/* "${PWD}/${LOCAL_MOUNT}/osgi/modules"
 
-cx-zips: clean-cx-zips
-	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:build :client-extensions:deploy -x test -x check
-
 deploy: deploy-dxp deploy-cx ## Deploy DXP and Client Extensions to cluster (Make sure you 'make start-cluster' first)
 
-deploy-cx: copy-cx-to-local-mount patch-coredns ## Deploy Client extensions to cluster
-	@./bin/deploy_cx "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
+deploy-cx: switch-context ## Deploy Client extensions to cluster
+	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:helmDeploy -x test -x check
 
-deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP and sidecars into cluster (Make sure you 'make start-cluster' first)
+deploy-dxp: copy-dxp-modules-to-local-mount license patch-coredns switch-context ## Deploy DXP and sidecars into cluster (Make sure you 'make start-cluster' first)
 	@helm upgrade -i liferay \
 		oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default \
 		--create-namespace \
@@ -75,7 +63,7 @@ mkdir-local-mount: ## Create k3d local mount folder
 	@mkdir -p "${PWD}/${LOCAL_MOUNT}"
 
 patch-coredns: switch-context ## Patch CoreDNS to resolve hostnames
-	@kubectl apply -f ./helm-values/coredns-custom.yaml
+	@./bin/patch_coredns
 	@kubectl rollout restart deployment coredns -n kube-system
 
 start-cluster: mkdir-local-mount ## Start k3d cluster

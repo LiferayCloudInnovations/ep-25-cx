@@ -1,11 +1,60 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
+
 def buildSubprojects = task build
 def cleanSubprojects = task clean
-def deploySubprojects = task deploy
+def helmDeploySubprojects = task helmDeploy
+def helmUndeploySubprojects = task helmUndeploy
 
 subprojects {
 	afterEvaluate {
-		buildSubprojects.dependsOn it.tasks["build"]
-		cleanSubprojects.dependsOn it.tasks["clean"]
-		deploySubprojects.dependsOn it.tasks["deploy"]
+		task tagDockerImage(type: DockerTagImage) {
+			description = "Tags the Docker image for the client extension."
+			imageId = "${project.name}"
+			tag = "latest"
+			repository = "localhost:5000/${project.name}"
+			dependsOn tasks["buildDockerImage"]
+		}
+
+		task pushDockerImage(type: DockerPushImage) {
+			description = "Pushes the Docker image to the registry."
+			images = ["localhost:5000/${project.name}:latest"]
+			dependsOn tasks["tagDockerImage"]
+		}
+
+		task helmDeploy(type: Exec) {
+			description = "Deploys the client extension using Helm."
+			commandLine(
+				'helm',
+				'upgrade',
+				'--install',
+				'--namespace',
+				'liferay-system',
+				project.name + "-cx",
+				'-f',
+				project.layout.buildDirectory.file("./liferay-client-extension-build/cx-values.yaml").get(),
+				rootProject.file('../helm-charts/client-extension')
+			)
+
+			dependsOn tasks["pushDockerImage"]
+
+		}
+
+		task helmUndeploy(type: Exec) {
+			description = "Undeployed the client extension using Helm."
+			commandLine(
+				'helm',
+				'uninstall',
+				'--namespace',
+				'liferay-system',
+				'--ignore-not-found',
+				project.name + "-cx",
+			)
+		}
+
+		buildSubprojects.dependsOn tasks["build"]
+		cleanSubprojects.dependsOn tasks["clean"]
+		helmDeploySubprojects.dependsOn tasks["helmDeploy"]
+		helmUndeploySubprojects.dependsOn tasks["helmUndeploy"]
 	}
 }

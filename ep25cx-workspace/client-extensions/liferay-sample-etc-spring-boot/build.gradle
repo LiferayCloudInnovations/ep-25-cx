@@ -40,9 +40,9 @@ repositories {
 }
 
 def generatedFileName = "cx-values.yaml"
-def generatedFilePath = layout.buildDirectory.file("tmp/${generatedFileName}").get().asFile
+def generatedFilePath = layout.buildDirectory.file("liferay-client-extension-build/${generatedFileName}").get().asFile
 
-tasks.register('generateValuesYamlFile') {
+tasks.named('createClientExtensionConfig') {
 	outputs.file(generatedFilePath)
 	doLast {
 		generatedFilePath.getParentFile().mkdirs()
@@ -73,13 +73,5 @@ service:
 """
 
 		generatedFilePath.write(valuesYamlContent)
-	}
-}
-
-tasks.named('buildClientExtensionZip', Zip) {
-	dependsOn tasks.generateValuesYamlFile
-
-	from(generatedFilePath.getParentFile()) {
-		include generatedFileName
 	}
 }

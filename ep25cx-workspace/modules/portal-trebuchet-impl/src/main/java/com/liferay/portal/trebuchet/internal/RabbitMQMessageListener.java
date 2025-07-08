@@ -18,6 +18,9 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+/**
+ * @author Raymond Augé
+ */
 @Component(
 	immediate = true,
 	property = {
@@ -43,8 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 		"destination.name=liferay/flags",
 		"destination.name=liferay/layouts_local_publisher",
 		"destination.name=liferay/layouts_remote_publisher",
-		"destination.name=liferay/live_users",
-		"destination.name=liferay/mail",
+		"destination.name=liferay/live_users", "destination.name=liferay/mail",
 		"destination.name=liferay/message_boards_mailing_list",
 		"destination.name=liferay/object_entry_attachment_download",
 		"destination.name=liferay/scheduled_user_ldap_import",
@@ -53,7 +55,7 @@ import org.osgi.service.component.annotations.Reference;
 		"destination.name=liferay/scripting_executor",
 		"destination.name=liferay/segments_entry_reindex",
 		"destination.name=liferay/subscription_sender",
-		"destination.name=liferay/tensorflow_model_download",
+		"destination.name=liferay/tensorflow_model_download"
 	},
 	service = MessageListener.class
 )
@@ -68,10 +70,11 @@ public class RabbitMQMessageListener implements MessageListener {
 
 		if (companyId <= 0) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(StringBundler.concat(
-					"Skipping message to ", destinationName,
-					" because it does not contain a valid companyId: ",
-					message));
+				_log.debug(
+					StringBundler.concat(
+						"Skipping message to ", destinationName,
+						" because it does not contain a valid companyId: ",
+						message));
 			}
 
 			return;
@@ -80,8 +83,10 @@ public class RabbitMQMessageListener implements MessageListener {
 		long userId = _getUserId(message);
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(StringBundler.concat(
-				"Queuing a message to ", destinationName, ", message", message));
+			_log.debug(
+				StringBundler.concat(
+					"Queuing a message to ", destinationName, ", message",
+					message));
 		}
 
 		try {

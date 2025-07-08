@@ -44,8 +44,8 @@ cx-zips: clean-cx-zips
 
 deploy: deploy-dxp deploy-cx ## Deploy DXP and Client Extensions to cluster (Make sure you 'make start-cluster' first)
 
-deploy-cx: copy-cx-to-local-mount patch-coredns ## Deploy Client extensions to cluster
-	@./bin/deploy_cx "${PWD}/${LOCAL_MOUNT}/osgi/client-extensions"
+deploy-cx: switch-context patch-coredns ## Deploy Client extensions to cluster
+	@cd ./ep25cx-workspace/ && ./gradlew :client-extensions:deploy -x test -x check
 
 deploy-dxp: copy-dxp-modules-to-local-mount license switch-context ## Deploy DXP and sidecars into cluster (Make sure you 'make start-cluster' first)
 	@helm upgrade -i liferay \

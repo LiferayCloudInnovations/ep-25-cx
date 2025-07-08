@@ -2,6 +2,7 @@
 
 <suppressions>
 	<source-check>
-		<suppress checks="WhitespaceCheck" files="client-extensions/\.*/build\.gradle" />
+		<suppress checks="GradleStylingCheck" files="client-extensions/.*/build\.gradle" />
+		<suppress checks="WhitespaceCheck" files="client-extensions/.*/build\.gradle" />
 	</source-check>
 </suppressions>

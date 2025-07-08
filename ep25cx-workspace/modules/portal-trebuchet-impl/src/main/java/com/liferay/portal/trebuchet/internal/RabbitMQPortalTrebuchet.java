@@ -51,15 +51,15 @@ public class RabbitMQPortalTrebuchet implements PortalTrebuchet {
 			long userId)
 		throws PortalException {
 
-		ExecutorService executorService =
-			_portalExecutorManager.getPortalExecutor(
-				RabbitMQPortalTrebuchet.class.getName());
-
 		Company company = _companyLocalService.fetchCompany(companyId);
 
 		if (company == null) {
 			return;
 		}
+
+		ExecutorService executorService =
+			_portalExecutorManager.getPortalExecutor(
+				RabbitMQPortalTrebuchet.class.getName());
 
 		String virtualHostId = company.getWebId();
 

@@ -24,10 +24,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Gregory Amerson
  */
-@Component(
-	immediate = true,
-	service = ModelListener.class
-)
+@Component(immediate = true, service = ModelListener.class)
 public class MessageBrokerObjectEntryModelListener
 	extends BaseModelListener<ObjectEntry> {
 

@@ -3,24 +3,23 @@ import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
 
 def buildSubprojects = task build
 def cleanSubprojects = task clean
-def deploySubprojects = task deploySubprojects
+def helmDeploySubprojects = task helmDeploy
+def helmUndeploySubprojects = task helmUndeploy
 
 subprojects {
 	afterEvaluate {
 		task tagDockerImage(type: DockerTagImage) {
 			description = "Tags the Docker image for the client extension."
-			imageId = "localhost:5000/${project.name}"
+			imageId = "${project.name}"
 			tag = "latest"
 			repository = "localhost:5000/${project.name}"
 			dependsOn tasks["buildDockerImage"]
-
 		}
 
 		task pushDockerImage(type: DockerPushImage) {
 			description = "Pushes the Docker image to the registry."
 			images = ["localhost:5000/${project.name}:latest"]
 			dependsOn tasks["tagDockerImage"]
-
 		}
 
 		task helmDeploy(type: Exec) {
@@ -51,14 +50,11 @@ subprojects {
 				'--ignore-not-found',
 				project.name + "-cx",
 			)
-
 		}
-
-		tasks["clean"].dependsOn tasks["helmUndeploy"]
-		tasks["deploy"].dependsOn tasks["helmDeploy"]
 
 		buildSubprojects.dependsOn tasks["build"]
 		cleanSubprojects.dependsOn tasks["clean"]
-		deploySubprojects.dependsOn tasks["deploy"]
+		helmDeploySubprojects.dependsOn tasks["helmDeploy"]
+		helmUndeploySubprojects.dependsOn tasks["helmUndeploy"]
 	}
 }

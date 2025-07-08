@@ -18,6 +18,7 @@ clientExtensionConfig:
   virtualInstanceId: "main.dxp.localtest.me"
 env:
   LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
+  LIFERAY_BATCH_CURL_OPTIONS: -v
 image:
   repository: registry:5000/${project.name}
 job:

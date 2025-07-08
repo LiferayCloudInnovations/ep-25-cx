@@ -1,0 +1,12 @@
+{
+	"dependencies": {
+		"amqplib": "^0.10.8",
+		"express": "^5.1.0"
+	},
+	"license": "LGPL",
+	"name": "@liferay/liferay-sample-etc-node",
+	"scripts": {
+		"start": "node app.js"
+	},
+	"version": "0.0.0"
+}

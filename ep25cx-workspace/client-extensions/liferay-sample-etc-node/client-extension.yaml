@@ -1,0 +1,4 @@
+assemble:
+    -   include:
+            -   "**/*.js"
+            -   package.json

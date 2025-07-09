@@ -27,7 +27,7 @@ script.onload = function() {
       userName: `${location.hostname}:lfrrabbitmq`,
       onSuccess: function () {
           console.log("CONNECTION SUCCESS");
-          client.subscribe("C.EP25SampleEvent", {qos: 1});
+          client.subscribe("C/EP25SampleEvent", {qos: 1});
       },
       onFailure: function (message) {
           console.log("CONNECTION FAILURE - " + message.errorMessage);

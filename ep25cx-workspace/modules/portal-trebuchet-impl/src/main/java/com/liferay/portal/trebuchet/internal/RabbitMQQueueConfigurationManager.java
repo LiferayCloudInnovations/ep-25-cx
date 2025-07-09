@@ -215,7 +215,7 @@ public class RabbitMQQueueConfigurationManager {
 
 		if (messageQueueConfiguration.arguments() != null) {
 			for (String argument : messageQueueConfiguration.arguments()) {
-				if (StringUtil.contains(argument, "=")) {
+				if (argument.contains("=")) {
 					String[] parts = argument.split("=", 2);
 
 					arguments.put(parts[0], _coerce(parts[1]));

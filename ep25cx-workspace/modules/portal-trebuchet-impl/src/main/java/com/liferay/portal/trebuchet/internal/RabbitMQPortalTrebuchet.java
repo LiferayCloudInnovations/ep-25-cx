@@ -14,10 +14,12 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.trebuchet.PortalTrebuchet;
 import com.liferay.portal.trebuchet.PortalTrebuchetUtil;
 import com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
 import java.nio.charset.StandardCharsets;
+
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 

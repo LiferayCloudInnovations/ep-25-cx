@@ -18,11 +18,13 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.trebuchet.PortalTrebuchetUtil;
 import com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration;
 import com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +56,8 @@ public class RabbitMQQueueConfigurationManager {
 		String virtualHostId = company.getWebId();
 
 		return _connections.computeIfAbsent(
-			virtualHostId, theVirtualHostId -> {
+			virtualHostId,
+			theVirtualHostId -> {
 				ConnectionFactory connectionFactory = new ConnectionFactory();
 
 				connectionFactory.setAutomaticRecoveryEnabled(
@@ -82,8 +85,7 @@ public class RabbitMQQueueConfigurationManager {
 				}
 
 				return null;
-			}
-		);
+			});
 	}
 
 	public MessageQueueConfiguration getMessageQueueConfiguration(
@@ -105,9 +107,7 @@ public class RabbitMQQueueConfigurationManager {
 						"companyId", companyId
 					).put(
 						"name", name
-					).build()
-				)
-			);
+					).build()));
 
 			setMessageQueueConfiguration(name, messageQueueConfiguration);
 		}
@@ -131,16 +131,17 @@ public class RabbitMQQueueConfigurationManager {
 			_log.debug("Deactivated");
 		}
 
-		_connections.forEach((k, v) -> {
-			try {
-				v.close();
-			}
-			catch (IOException ioException) {
-				if (_log.isErrorEnabled()) {
-					_log.error(ioException);
+		_connections.forEach(
+			(k, v) -> {
+				try {
+					v.close();
 				}
-			}
-		});
+				catch (IOException ioException) {
+					if (_log.isErrorEnabled()) {
+						_log.error(ioException);
+					}
+				}
+			});
 
 		_connections.clear();
 	}
@@ -156,8 +157,9 @@ public class RabbitMQQueueConfigurationManager {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					StringBundler.concat(
-					"Could not establish a connection to the message broker ",
-					"for companyId ", messageQueueConfiguration.companyId()));
+						"Could not establish a connection to the message broker ",
+						"for companyId ",
+						messageQueueConfiguration.companyId()));
 			}
 
 			return;
@@ -178,8 +180,7 @@ public class RabbitMQQueueConfigurationManager {
 			_getMessageQueueConfigurations(
 				messageQueueConfiguration.companyId());
 
-		messageQueueConfigurations.put(
-			name, messageQueueConfiguration);
+		messageQueueConfigurations.put(name, messageQueueConfiguration);
 	}
 
 	protected void unsetMessageQueueConfiguration(
@@ -222,10 +223,9 @@ public class RabbitMQQueueConfigurationManager {
 				else if (_log.isDebugEnabled()) {
 					_log.debug(
 						StringBundler.concat(
-							"Failed to parse argument ", argument,
-							" on ", messageQueueConfiguration.name(),
-							" because it does not contain an equals sign"
-						));
+							"Failed to parse argument ", argument, " on ",
+							messageQueueConfiguration.name(),
+							" because it does not contain an equals sign"));
 				}
 			}
 		}
@@ -256,15 +256,16 @@ public class RabbitMQQueueConfigurationManager {
 	private CompanyLocalService _companyLocalService;
 
 	private Map<String, Connection> _connections = new ConcurrentHashMap<>();
-
 	private MessageBrokerConfiguration _messageBrokerConfiguration;
-
 	private final Map<Long, Map<String, MessageQueueConfiguration>>
 		_messageQueueConfigurations = new ConcurrentHashMap<>();
 
-	static class DefaultMessageQueueConfiguration implements MessageQueueConfiguration {
+	static class DefaultMessageQueueConfiguration
+		implements MessageQueueConfiguration {
 
-		DefaultMessageQueueConfiguration(MessageQueueConfiguration messageQueueConfiguration) {
+		DefaultMessageQueueConfiguration(
+			MessageQueueConfiguration messageQueueConfiguration) {
+
 			_messageQueueConfiguration = messageQueueConfiguration;
 		}
 

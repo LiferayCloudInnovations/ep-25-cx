@@ -53,10 +53,10 @@ public class RabbitMQQueueFactory {
 	private static final Log _log = LogFactoryUtil.getLog(
 		RabbitMQQueueFactory.class);
 
+	private MessageQueueConfiguration _messageQueueConfiguration;
+
 	@Reference
 	private RabbitMQQueueConfigurationManager
 		_rabbitMQQueueConfigurationManager;
-
-	private MessageQueueConfiguration _messageQueueConfiguration;
 
 }

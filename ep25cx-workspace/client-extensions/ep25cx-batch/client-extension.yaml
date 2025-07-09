@@ -16,5 +16,5 @@ ep25cx-batch-oauth-application-headless-server:
     type: oAuthApplicationHeadlessServer
 ep25cx-sample-queue-configuration:
     name: C_EP25SampleEvent
-    type: instanceSettings
     pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
+    type: instanceSettings

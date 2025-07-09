@@ -14,9 +14,6 @@ clientExtensionConfig:
       ${clientExtensionConfigContent}
   kind: Deployment
   mainDomain: "${project.name}.localtest.me"
-  virtualInstanceId: "main.dxp.localtest.me"
-image:
-  repository: registry:5000/${project.name}
 ingress:
     enabled: true
 livenessProbe:

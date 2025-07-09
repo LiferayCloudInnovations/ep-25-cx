@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RabbitMqMessageListener {
 
-	@RabbitListener(queues = "liferay/background_task")
+	@RabbitListener(queues = "liferay/background_task.default")
 	public void receive(String message) {
 		System.out.println("Received message: " + message);
 	}

@@ -13,7 +13,6 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.trebuchet.PortalTrebuchetUtil;
 import com.liferay.portal.trebuchet.configuration.MessageBrokerConfiguration;

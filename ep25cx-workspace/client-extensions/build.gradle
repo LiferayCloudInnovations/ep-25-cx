@@ -1,6 +1,10 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
 
+ext {
+	buildTimestamp = new Date().format("yyyyMMddHHmmss")
+}
+
 def buildSubprojects = task build
 def cleanSubprojects = task clean
 def helmDeploySubprojects = task helmDeploy
@@ -8,17 +12,22 @@ def helmUndeploySubprojects = task helmUndeploy
 
 subprojects {
 	afterEvaluate {
+		buildDockerImage {
+			images.add("${project.name}:${buildTimestamp}")
+
+		}
+
 		task tagDockerImage(type: DockerTagImage) {
 			description = "Tags the Docker image for the client extension."
 			imageId = "${project.name}"
-			tag = "latest"
+			tag = "$buildTimestamp"
 			repository = "localhost:5000/${project.name}"
 			dependsOn tasks["buildDockerImage"]
 		}
 
 		task pushDockerImage(type: DockerPushImage) {
 			description = "Pushes the Docker image to the registry."
-			images = ["localhost:5000/${project.name}:latest"]
+			images = ["localhost:5000/${project.name}:$buildTimestamp"]
 			dependsOn tasks["tagDockerImage"]
 		}
 
@@ -33,6 +42,12 @@ subprojects {
 				project.name + "-cx",
 				'-f',
 				project.layout.buildDirectory.file("./liferay-client-extension-build/cx-values.yaml").get(),
+				'--set',
+				"image.repository=registry:5000/${project.name}",
+				'--set',
+				"image.tag=${buildTimestamp}",
+				'--set',
+				'clientExtensionConfig.virtualInstanceId=main.dxp.localtest.me',
 				rootProject.file('../helm-charts/client-extension')
 			)
 

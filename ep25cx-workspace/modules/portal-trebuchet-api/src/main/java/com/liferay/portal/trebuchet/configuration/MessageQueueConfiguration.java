@@ -3,12 +3,13 @@ package com.liferay.portal.trebuchet.configuration;
 import aQute.bnd.annotation.metatype.Meta;
 
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
-import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition.Scope;
 
 /**
  * @author Raymond Augé
  */
-@ExtendedObjectClassDefinition(generateUI = false, scope = Scope.COMPANY)
+@ExtendedObjectClassDefinition(
+	generateUI = false, scope = ExtendedObjectClassDefinition.Scope.COMPANY
+)
 @Meta.OCD(
 	factory = true,
 	id = "com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration"

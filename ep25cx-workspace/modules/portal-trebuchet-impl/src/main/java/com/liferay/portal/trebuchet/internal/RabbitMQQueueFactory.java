@@ -22,7 +22,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Raymond Augé
  */
 @Component(
-	configurationPid = "com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration",
+	configurationPid = "com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration.scoped",
 	configurationPolicy = ConfigurationPolicy.REQUIRE, service = {}
 )
 public class RabbitMQQueueFactory {

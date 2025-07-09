@@ -157,8 +157,8 @@ public class RabbitMQQueueConfigurationManager {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					StringBundler.concat(
-						"Could not establish a connection to the message broker ",
-						"for companyId ",
+						"Could not establish a connection to the message ",
+						"broker for companyId ",
 						messageQueueConfiguration.companyId()));
 			}
 
@@ -260,14 +260,8 @@ public class RabbitMQQueueConfigurationManager {
 	private final Map<Long, Map<String, MessageQueueConfiguration>>
 		_messageQueueConfigurations = new ConcurrentHashMap<>();
 
-	static class DefaultMessageQueueConfiguration
+	private static class DefaultMessageQueueConfiguration
 		implements MessageQueueConfiguration {
-
-		DefaultMessageQueueConfiguration(
-			MessageQueueConfiguration messageQueueConfiguration) {
-
-			_messageQueueConfiguration = messageQueueConfiguration;
-		}
 
 		@Override
 		public String[] arguments() {
@@ -302,6 +296,12 @@ public class RabbitMQQueueConfigurationManager {
 		@Override
 		public String name() {
 			return _messageQueueConfiguration.name() + ".default";
+		}
+
+		private DefaultMessageQueueConfiguration(
+			MessageQueueConfiguration messageQueueConfiguration) {
+
+			_messageQueueConfiguration = messageQueueConfiguration;
 		}
 
 		private MessageQueueConfiguration _messageQueueConfiguration;

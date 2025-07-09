@@ -8,8 +8,8 @@ ep25cx-liferay-background-task-dlx-queue-config:
     type: instanceSettings
 ep25cx-liferay-background-task-queue-config:
     arguments:
+    -   x-dead-letter-exchange=liferay/background_task/dlx
+    -   x-message-ttl=60000
     name: liferay/background_task
     pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
     type: instanceSettings
-    -   x-dead-letter-exchange=liferay/background_task/dlx
-    -   x-message-ttl=60000

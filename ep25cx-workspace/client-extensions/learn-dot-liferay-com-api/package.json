@@ -1,0 +1,23 @@
+{
+  "name": "liferay-search-suggestions-api",
+  "version": "1.0.0",
+  "description": "API that proxies Liferay's search suggestions endpoint",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "liferay",
+    "search",
+    "suggestions",
+    "api",
+    "express",
+    "axios"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "express": "^4.19.2"
+  }
+}

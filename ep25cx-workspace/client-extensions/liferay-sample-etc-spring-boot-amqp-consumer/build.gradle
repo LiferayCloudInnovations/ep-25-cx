@@ -28,6 +28,8 @@ dependencies {
 	implementation group: "com.liferay", name: "org.apache.commons.logging", version: "1.2.LIFERAY-PATCHED-2"
 	implementation group: "net.datafaker", name: "datafaker", version: "1.9.0"
 	implementation group: "org.json", name: "json", version: "20231013"
+    implementation group: "org.apache.httpcomponents", name: "httpclient", version: "4.5.13"
+    implementation group: "commons-io", name: "commons-io", version: "2.11.0"
 	implementation group: "org.springframework.boot", name: "spring-boot-starter", version: "${springBootVersion}"
 	implementation group: "org.springframework.boot", name: "spring-boot-starter-amqp", version: "${springBootVersion}"
 	implementation group: "org.springframework.boot", name: "spring-boot-starter-oauth2-resource-server", version: "${springBootVersion}"

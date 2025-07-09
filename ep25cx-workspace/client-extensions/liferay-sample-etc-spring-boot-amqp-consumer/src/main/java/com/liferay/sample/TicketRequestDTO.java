@@ -5,7 +5,7 @@ import org.json.JSONObject;
 /**
  * @author Marcel Tanuri
  */
-public record TicketRequestDTO(Long ticketId, String subject) {
+public record TicketRequestDTO(Long ticketId, String subject, String ticketStatus) {
 
     public static TicketRequestDTO fromMessage(String message) {
         JSONObject messageObject = new JSONObject(message);
@@ -16,6 +16,8 @@ public record TicketRequestDTO(Long ticketId, String subject) {
         JSONObject valuesObject = objectEntryObject.getJSONObject("values");
         String subject = valuesObject.getString("subject");
 
-        return new TicketRequestDTO(ticketId, subject);
+        String ticketStatus = valuesObject.getString("ticketStatus");
+
+        return new TicketRequestDTO(ticketId, subject, ticketStatus);
     }
 }

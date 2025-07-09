@@ -1,9 +1,13 @@
 assemble:
     -   fromTask: bootJar
-liferay-sample-etc-spring-boot-ampq-consumer-oauth-application-user-agent:
+liferay-sample-etc-spring-boot-ampq-consumer-oauth-application-headless-server:
     .serviceAddress: localhost:58081
     .serviceScheme: http
     name: Liferay Sample Etc Spring Boot AMQP Consumer OAuth Application User Agent
     scopes:
         -   c_ticket.everything
     type: oAuthApplicationHeadlessServer
+ep25cx-amqp-queue:
+    name: C_TicketEvent
+    pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
+    type: instanceSettings

@@ -28,8 +28,8 @@ const filters = [
 	},
 	{
 		field: 'ticketStatus',
-		value: 'queued',
-		text: 'Queued issues',
+		value: 'answered',
+		text: 'Answered issues',
 	},
 	{
 		field: 'priority',

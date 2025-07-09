@@ -74,7 +74,7 @@ public class DocumentationReferral {
 		String subject = jsonProperties.getString("subject");
 
 		jsonTicketStatus.remove("name");
-		jsonTicketStatus.put("key", "queued");
+		jsonTicketStatus.put("key", "answered");
 		jsonProperties.put("suggestions", _getSuggestionsJSON(subject));
 
 		_log.info("JSON OUTPUT: \n\n" + jsonProperties.toString(4) + "\n");

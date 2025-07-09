@@ -46,7 +46,7 @@ requests over REST.
 Start by running the following a container with curl as follows:
 
 ```shell
-k run -it --rm --restart=Never alpine --image=alpine -- sh -c "apk add bash curl jq && bash"
+kubectl run -it --rm --restart=Never alpine --image=alpine -- sh -c "apk add bash curl jq && bash"
 ```
 
 At the prompt use `curl` to can make queries using the user credentials
@@ -139,3 +139,15 @@ make undeploy-cx undeploy-dxp
 ```shell
 make clean
 ```
+
+## Debug Liferay
+
+Liferay is already configured in debug mode.
+
+Port forward to Liferay Pod's debug port:
+
+```shell
+kubectl -n liferay-system port-forward liferay-default-0 8000:8000
+```
+
+Connect using any IDE debugger to remote Java process at `localhost:8000`.

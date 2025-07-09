@@ -36,7 +36,7 @@ amqp.connect(connectOptions, function(error0, connection) {
             throw error1;
         }
 
-        var queue = 'login.events.postEvent';
+        var queue = 'login.events.postEvent.default';
 
         channel.assertQueue(queue, {
             durable: true

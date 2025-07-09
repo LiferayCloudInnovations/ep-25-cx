@@ -1,4 +1,4 @@
-def erc = "${project.name}-oauth-application-headless-server"
+def erc = "ticket-entry-batch-importer"
 def generatedFileName = "cx-values.yaml"
 def generatedFilePath = layout.buildDirectory.file("liferay-client-extension-build/${generatedFileName}").get().asFile
 

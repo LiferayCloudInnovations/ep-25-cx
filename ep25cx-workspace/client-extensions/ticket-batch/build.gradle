@@ -1,0 +1,27 @@
+def erc = "${project.name}-oauth-application-headless-server"
+def generatedFileName = "cx-values.yaml"
+def generatedFilePath = layout.buildDirectory.file("liferay-client-extension-build/${generatedFileName}").get().asFile
+
+tasks.named('createClientExtensionConfig') {
+	outputs.file(generatedFilePath)
+	doLast {
+		generatedFilePath.getParentFile().mkdirs()
+		def clientExtensionConfigContent = layout.buildDirectory.file("liferay-client-extension-build/${project.name}.client-extension-config.json").get().asFile.text.replaceAll(/[\r\n]+/, "").trim()
+
+		def valuesYamlContent = """
+clientExtensionConfig:
+  configJsons:
+    - |
+      ${clientExtensionConfigContent}
+  kind: Job
+  mountInitConfig: true
+env:
+  LIFERAY_BATCH_OAUTH_APP_ERC: ${erc}
+  LIFERAY_BATCH_CURL_OPTIONS: -v
+job:
+  backoffLimit: 30
+"""
+
+		generatedFilePath.write(valuesYamlContent)
+	}
+}

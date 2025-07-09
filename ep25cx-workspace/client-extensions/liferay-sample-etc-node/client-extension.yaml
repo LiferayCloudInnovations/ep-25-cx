@@ -13,3 +13,7 @@ ep25cx-liferay-background-task-queue-config:
     name: liferay/background_task
     pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
     type: instanceSettings
+ep25cx-login-events-postEvent-dlx-queue-config:
+    name: login.events.postEvent
+    pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
+    type: instanceSettings

@@ -132,85 +132,49 @@ public class DocumentationReferral {
 	private String _getSuggestionsJSON(String subject) {
 		JSONArray suggestionsJSONArray = new JSONArray();
 
-		SuggestionsContributorConfiguration
-			suggestionsContributorConfiguration =
-				new SuggestionsContributorConfiguration();
+		WebClient.Builder builder = WebClient.builder();
 
-		suggestionsContributorConfiguration.setContributorName("sxpBlueprint");
+		WebClient webClient = builder.baseUrl(
+			 "http://learn-dot-liferay-com-api.localtest.me"
+		).defaultHeader(
+			HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE
+		).defaultHeader(
+			HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE
+		).build();
 
-		suggestionsContributorConfiguration.setDisplayGroupName(
-			"Public Nav Search Recommendations");
+		String suggestions = webClient.get(
+		).uri(
+			"/suggestions?search={search}", subject )
+        .exchangeToMono(
+			clientResponse -> {
+				HttpStatus httpStatus = clientResponse.statusCode();
 
-		suggestionsContributorConfiguration.setSize(3);
-
-		JSONObject attributes = new JSONObject();
-
-		attributes.put(
-			"includeAssetSearchSummary", true
-		).put(
-			"includeassetURL", true
-		).put(
-			"sxpBlueprintId", 3628599
-		);
-
-		suggestionsContributorConfiguration.setAttributes(attributes);
-
-		try {
-			Page<SuggestionsContributorResults>
-				suggestionsContributorResultsPage =
-					_suggestionResource.postSuggestionsPage(
-						SUGGESTION_SCHEME + "://" + SUGGESTION_HOST, "/search",
-						3190049L, "", 1434L, "this-site", subject,
-						new SuggestionsContributorConfiguration[] {
-							suggestionsContributorConfiguration
-						});
-
-			for (SuggestionsContributorResults suggestionsContributorResults :
-					suggestionsContributorResultsPage.getItems()) {
-
-				Suggestion[] suggestions =
-					suggestionsContributorResults.getSuggestions();
-
-				for (Suggestion suggestion : suggestions) {
-					String text = suggestion.getText();
-
-					JSONObject suggestionAttributes = new JSONObject(
-						String.valueOf(suggestion.getAttributes()));
-
-					String assetURL = (String)suggestionAttributes.get(
-						"assetURL");
-
-					JSONObject suggestionJSONObject = new JSONObject();
-
-					suggestionJSONObject.put(
-						"assetURL",
-						SUGGESTION_SCHEME + "://" + SUGGESTION_HOST + assetURL
-					).put(
-						"text", text
-					);
-					suggestionsJSONArray.put(suggestionJSONObject);
+				if (httpStatus.is2xxSuccessful()) {
+					return clientResponse.bodyToMono(String.class);
 				}
+				else if (httpStatus.is4xxClientError()) {
+					if (_log.isInfoEnabled()) {
+						_log.info("Output: " + httpStatus.getReasonPhrase());
+					}
+				}
+
+				Mono<WebClientResponseException> mono =
+					clientResponse.createException();
+
+				return mono.flatMap(Mono::error);
 			}
-		}
-		catch (Exception exception) {
-			if (_log.isErrorEnabled()) {
-				_log.error("Could not retrieve search suggestions", exception);
-			}
+		).retryWhen(
+			Retry.backoff(
+				3, Duration.ofSeconds(1)
+			).doAfterRetry(
+				retrySignal -> _log.info("Retrying request")
+			)
+		).block();
 
-			// Always return something for the purposes of the workshop
-
-			JSONObject suggestionJSONObject = new JSONObject();
-
-			suggestionJSONObject.put(
-				"assetURL", SUGGESTION_SCHEME + "://" + SUGGESTION_HOST
-			).put(
-				"text", "learn.liferay.com"
-			);
-			suggestionsJSONArray.put(suggestionJSONObject);
-		}
-
-		return suggestionsJSONArray.toString();
+        return suggestions;
+		
 	}
+
 
 	private void _initResourceBuilders() {
 		SuggestionResource.Builder dataDefinitionResourceBuilder =

@@ -5,5 +5,5 @@ liferay-sample-etc-spring-boot-ampq-consumer-oauth-application-user-agent:
     .serviceScheme: http
     name: Liferay Sample Etc Spring Boot AMQP Consumer OAuth Application User Agent
     scopes:
-        -   Liferay.Headless.Admin.User.everything
+        -   c_ticket.everything
     type: oAuthApplicationHeadlessServer

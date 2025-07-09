@@ -130,7 +130,6 @@ public class DocumentationReferral {
 	}
 
 	private String _getSuggestionsJSON(String subject) {
-		JSONArray suggestionsJSONArray = new JSONArray();
 
 		WebClient.Builder builder = WebClient.builder();
 
@@ -142,7 +141,7 @@ public class DocumentationReferral {
 			HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE
 		).build();
 
-		String suggestions = webClient.get(
+		String responseBody = webClient.get(
 		).uri(
 			"/suggestions?search={search}", subject )
         .exchangeToMono(
@@ -171,7 +170,40 @@ public class DocumentationReferral {
 			)
 		).block();
 
-        return suggestions;
+
+        JSONObject rootObject = new JSONObject(responseBody);
+		JSONArray suggestionsJSONArray = new JSONArray();
+
+		JSONArray items = rootObject.optJSONArray("items");
+		if (items == null) {
+			_log.warn("No 'items' array found in response");
+			return suggestionsJSONArray.toString();
+		}
+
+		for (int i = 0; i < items.length(); i++) {
+			JSONObject contributorResults = items.getJSONObject(i);
+			JSONArray suggestions = contributorResults.optJSONArray("suggestions");
+
+			if (suggestions == null) {
+				continue;
+			}
+
+			for (int j = 0; j < suggestions.length(); j++) {
+				JSONObject suggestion = suggestions.getJSONObject(j);
+				JSONObject attributes = suggestion.optJSONObject("attributes");
+
+				String text = suggestion.optString("text", "No text");
+				String assetURL = attributes != null ? attributes.optString("assetURL", "") : "";
+
+				suggestionsJSONArray.put(
+					new JSONObject()
+						.put("text", text)
+						.put("assetURL", "https://learn.liferay.com" + assetURL)
+				);
+			}
+		}
+
+        return suggestionsJSONArray.toString();
 		
 	}
 

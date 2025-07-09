@@ -2,3 +2,14 @@ assemble:
     -   include:
             -   "**/*.js"
             -   package.json
+ep25cx-liferay-background-task-dlx-queue-config:
+    name: liferay/background_task/dlx
+    type: instanceSettings
+    pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
+ep25cx-liferay-background-task-queue-config:
+    name: liferay/background_task
+    type: instanceSettings
+    pid: com.liferay.portal.trebuchet.configuration.MessageQueueConfiguration
+    arguments:
+    - x-dead-letter-exchange=liferay/background_task/dlx
+    - x-message-ttl=60000

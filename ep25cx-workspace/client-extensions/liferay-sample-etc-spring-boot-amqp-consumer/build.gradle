@@ -62,7 +62,6 @@ clientExtensionConfig:
   kind: Deployment
   mainDomain: "${project.name}.localtest.me"
   mountInitConfig: true
-  virtualInstanceId: "main.dxp.localtest.me"
 image:
   repository: registry:5000/${project.name}
 ingress:

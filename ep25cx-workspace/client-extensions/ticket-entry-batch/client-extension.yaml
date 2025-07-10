@@ -1,6 +1,6 @@
 assemble:
-    - from: batch
-      into: batch
+    -   from: batch
+        into: batch
 ticket-entry-batch:
     name: Ticket Entry Batch
     oAuthApplicationHeadlessServer: ticket-entry-batch-importer
@@ -10,6 +10,6 @@ ticket-entry-batch-importer:
     .serviceScheme: http
     name: Ticket Entry Batch Importer Application
     scopes:
-        - c_ticket.everything
-        - Liferay.Headless.Batch.Engine.everything
+        -   c_ticket.everything
+        -   Liferay.Headless.Batch.Engine.everything
     type: oAuthApplicationHeadlessServer

@@ -7,16 +7,18 @@ import org.json.JSONObject;
  */
 public record TicketResponseDTO(String suggestions, String status) {
 
-    public JSONObject toJsonObject() {
-        JSONObject json = new JSONObject();
+	public JSONObject toJsonObject() {
+		JSONObject json = new JSONObject();
 
-        json.put("suggestions", suggestions);
+		json.put("suggestions", suggestions);
 
-        JSONObject ticketStatusJson = new JSONObject();
-        ticketStatusJson.put("key", status);
+		JSONObject ticketStatusJson = new JSONObject();
 
-        json.put("ticketStatus", ticketStatusJson);
+		ticketStatusJson.put("key", status);
 
-        return json;
-    }
+		json.put("ticketStatus", ticketStatusJson);
+
+		return json;
+	}
+
 }

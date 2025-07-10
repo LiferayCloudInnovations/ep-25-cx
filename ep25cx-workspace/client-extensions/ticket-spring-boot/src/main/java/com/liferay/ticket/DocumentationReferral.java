@@ -14,10 +14,6 @@
 
 package com.liferay.ticket;
 
-import com.liferay.portal.search.rest.client.dto.v1_0.Suggestion;
-import com.liferay.portal.search.rest.client.dto.v1_0.SuggestionsContributorConfiguration;
-import com.liferay.portal.search.rest.client.dto.v1_0.SuggestionsContributorResults;
-import com.liferay.portal.search.rest.client.pagination.Page;
 import com.liferay.portal.search.rest.client.resource.v1_0.SuggestionResource;
 
 import java.time.Duration;
@@ -130,11 +126,10 @@ public class DocumentationReferral {
 	}
 
 	private String _getSuggestionsJSON(String subject) {
-
 		WebClient.Builder builder = WebClient.builder();
 
 		WebClient webClient = builder.baseUrl(
-			 "http://learn-dot-liferay-com-api.localtest.me"
+			"http://learn-dot-liferay-com-api.localtest.me"
 		).defaultHeader(
 			HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE
 		).defaultHeader(
@@ -143,8 +138,8 @@ public class DocumentationReferral {
 
 		String responseBody = webClient.get(
 		).uri(
-			"/suggestions?search={search}", subject )
-        .exchangeToMono(
+			"/suggestions?search={search}", subject
+		).exchangeToMono(
 			clientResponse -> {
 				HttpStatus httpStatus = clientResponse.statusCode();
 
@@ -170,19 +165,23 @@ public class DocumentationReferral {
 			)
 		).block();
 
+		JSONObject rootObject = new JSONObject(responseBody);
 
-        JSONObject rootObject = new JSONObject(responseBody);
 		JSONArray suggestionsJSONArray = new JSONArray();
 
 		JSONArray items = rootObject.optJSONArray("items");
+
 		if (items == null) {
 			_log.warn("No 'items' array found in response");
+
 			return suggestionsJSONArray.toString();
 		}
 
 		for (int i = 0; i < items.length(); i++) {
 			JSONObject contributorResults = items.getJSONObject(i);
-			JSONArray suggestions = contributorResults.optJSONArray("suggestions");
+
+			JSONArray suggestions = contributorResults.optJSONArray(
+				"suggestions");
 
 			if (suggestions == null) {
 				continue;
@@ -190,29 +189,33 @@ public class DocumentationReferral {
 
 			for (int j = 0; j < suggestions.length(); j++) {
 				JSONObject suggestion = suggestions.getJSONObject(j);
+
 				JSONObject attributes = suggestion.optJSONObject("attributes");
 
 				String text = suggestion.optString("text", "No text");
-				String assetURL = attributes != null ? attributes.optString("assetURL", "") : "";
+
+				String assetURL =
+					(attributes != null) ?
+						attributes.optString("assetURL", "") : "";
 
 				suggestionsJSONArray.put(
-					new JSONObject()
-						.put("text", text)
-						.put("assetURL", "https://learn.liferay.com" + assetURL)
-				);
+					new JSONObject(
+					).put(
+						"text", text
+					).put(
+						"assetURL", "https://learn.liferay.com" + assetURL
+					));
 			}
 		}
 
-        return suggestionsJSONArray.toString();
-		
+		return suggestionsJSONArray.toString();
 	}
-
 
 	private void _initResourceBuilders() {
 		SuggestionResource.Builder dataDefinitionResourceBuilder =
 			SuggestionResource.builder();
 
-		_suggestionResource = dataDefinitionResourceBuilder.header(
+		dataDefinitionResourceBuilder.header(
 			HttpHeaders.USER_AGENT, TicketRestController.class.getName()
 		).header(
 			HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE
@@ -225,7 +228,5 @@ public class DocumentationReferral {
 
 	private static final Log _log = LogFactory.getLog(
 		DocumentationReferral.class);
-
-	private SuggestionResource _suggestionResource;
 
 }

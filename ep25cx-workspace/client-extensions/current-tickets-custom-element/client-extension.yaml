@@ -8,14 +8,14 @@
 #  See https://learn.liferay.com/w/dxp/building-applications/client-extensions/working-with-client-extensions#assembling-client-extensions
 #  for more information
 assemble:
-    - from: build/assets
-      into: static
+    -   from: build/assets
+        into: static
 # Here declare our custom element client extension. We
 #  specify for example which URLs are used to render our 
 #  application and that we use ES modules
 current-tickets-custom-element:
     cssURLs:
-        - "*.css"
+        -   "*.css"
     friendlyURLMapping: current-tickets-custom-element
     htmlElementName: current-tickets-custom-element
     instanceable: false
@@ -23,5 +23,5 @@ current-tickets-custom-element:
     portletCategoryName: category.client-extensions
     type: customElement
     urls:
-        - "*.js"
+        -   "*.js"
     useESM: true

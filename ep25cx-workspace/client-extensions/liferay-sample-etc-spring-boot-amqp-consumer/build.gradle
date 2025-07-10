@@ -72,7 +72,7 @@ livenessProbe:
     httpGet:
         path: /ready
 podAnnotations:
-  k8s.ksgate.org/batch-job-succeeded: |
+  k8s.ksgate.org/ticket-batch-job-succeeded: |
       {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -80,7 +80,7 @@ podAnnotations:
         "expression": "resource.status.succeeded >= 1"
       }
 podSchedulingGates:
-  - name: k8s.ksgate.org/batch-job-succeeded
+  - name: k8s.ksgate.org/ticket-batch-job-succeeded
 readinessProbe:
     httpGet:
         path: /ready

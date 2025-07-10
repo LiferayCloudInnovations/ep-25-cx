@@ -20,6 +20,16 @@ env:
   LIFERAY_BATCH_CURL_OPTIONS: -v
 job:
   backoffLimit: 30
+podAnnotations:
+  k8s.ksgate.org/ticket-batch-job-succeeded: |
+      {
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "name": "ticket-batch-cx-liferay-client-extension",
+        "expression": "resource.status.succeeded >= 1"
+      }
+podSchedulingGates:
+  - name: k8s.ksgate.org/ticket-batch-job-succeeded
 """
 
 		generatedFilePath.write(valuesYamlContent)

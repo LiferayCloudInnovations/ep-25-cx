@@ -82,6 +82,10 @@ spec:
             nodeSelector:
                 {{- toYaml . | nindent 16 }}
             {{- end }}
+            {{- with .Values.podSchedulingGates }}
+            schedulingGates:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
             {{- with .Values.podSecurityContext }}
             securityContext:
                 {{- toYaml . | nindent 16 }}

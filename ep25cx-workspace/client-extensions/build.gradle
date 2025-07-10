@@ -50,6 +50,7 @@ subprojects {
 				'clientExtensionConfig.virtualInstanceId=main.dxp.localtest.me',
 				rootProject.file('../helm-charts/client-extension')
 			)
+			ignoreExitValue = true
 
 			dependsOn tasks["pushDockerImage"]
 
@@ -65,6 +66,7 @@ subprojects {
 				'--ignore-not-found',
 				project.name + "-cx",
 			)
+			ignoreExitValue = true
 		}
 
 		buildSubprojects.dependsOn tasks["build"]

@@ -38,13 +38,13 @@ deploy-cx: switch-context ## Deploy Client extensions to cluster
 deploy-dxp: copy-dxp-modules-to-local-mount license patch-coredns switch-context ## Deploy DXP and sidecars into cluster (Make sure you 'make start-cluster' first)
 	@helm upgrade -i liferay \
 		oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default \
+		-f helm-values/values.yaml \
 		--create-namespace \
 		--namespace liferay-system \
 		--set "image.tag=${DXP_IMAGE_TAG}" \
 		--set-file "configmap.data.license\.xml=license.xml" \
-		--wait \
 		--timeout 10m \
-		-f helm-values/values.yaml
+		--wait
 	@kubectl apply -f ./helm-values/websocket-services.yaml
 
 dxp-modules: clean-dxp-modules ## Build DXP Modules
@@ -73,6 +73,12 @@ start-cluster: mkdir-local-mount ## Start k3d cluster
 		--port 15675:15675@loadbalancer \
 		--registry-create registry:5000 \
 		--volume "${PWD}/${LOCAL_MOUNT}:/mnt/local@all:*"
+	@helm upgrade -i ksgate \
+		oci://ghcr.io/ksgate/charts/ksgate \
+		--create-namespace \
+		--namespace ksgate-system \
+		--timeout 5m \
+		--wait
 
 switch-context: ## Switch kubectl context to k3d cluster
 	@kubectx k3d-${CLUSTER_NAME}

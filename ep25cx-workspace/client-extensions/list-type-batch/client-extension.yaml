@@ -2,8 +2,8 @@
 #  in the client extension build artifact. In this case the batch folder
 #  contains the JSON definition of our picklists.
 assemble:
-    - from: batch
-      into: batch
+    -   from: batch
+        into: batch
 # We are defining a batch import client extension for importing
 #  our picklists into Liferay. This extension makes use of an
 #  oAuth profile for importing data.
@@ -19,6 +19,6 @@ list-type-batch-importer:
     .serviceScheme: http
     name: List Type Batch Importer Application
     scopes:
-        - Liferay.Headless.Admin.List.Type.everything
-        - Liferay.Headless.Batch.Engine.everything
+        -   Liferay.Headless.Admin.List.Type.everything
+        -   Liferay.Headless.Batch.Engine.everything
     type: oAuthApplicationHeadlessServer

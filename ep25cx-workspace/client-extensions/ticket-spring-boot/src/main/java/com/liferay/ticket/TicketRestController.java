@@ -60,8 +60,8 @@ public class TicketRestController {
 			}
 
 			_documentationReferral.addDocumentationReferralAndQueue(
-				_lxcDXPServerProtocol, _lxcDXPMainDomain,
-				jwt.getTokenValue(), jsonObject);
+				_lxcDXPServerProtocol, _lxcDXPMainDomain, jwt.getTokenValue(),
+				jsonObject);
 		}
 		catch (Exception exception) {
 			_log.error("JSON: " + json, exception);

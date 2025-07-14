@@ -1,11 +1,11 @@
 assemble:
-    - fromTask: bootJar
+    -   fromTask: bootJar
 ticket-spring-boot-oauth-application-user-agent:
     .serviceAddress: localhost:58081
     .serviceScheme: http
     name: Ticket Spring Boot OAuth Application User Agent
     scopes:
-        - c_ticket.everything
+        -   c_ticket.everything
     type: oAuthApplicationUserAgent
 ticket-spring-boot-object-action-documentation-referral:
     name: Ticket Spring Boot Object Action Documentation Referral

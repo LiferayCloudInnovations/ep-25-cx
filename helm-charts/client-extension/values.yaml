@@ -37,6 +37,7 @@ nameOverride: ""
 nodeSelector: {}
 podAnnotations: {}
 podLabels: {}
+podSchedulingGates: {}
 podSecurityContext: {}
 readinessProbe:
     httpGet:

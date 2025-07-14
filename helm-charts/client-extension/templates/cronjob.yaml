@@ -67,6 +67,10 @@ spec:
                         {{- toYaml . | nindent 24 }}
                     {{- end }}
                     restartPolicy: Never
+                    {{- with .Values.podSchedulingGates }}
+                    schedulingGates:
+                        {{- toYaml . | nindent 24 }}
+                    {{- end }}
                     {{- with .Values.podSecurityContext }}
                     securityContext:
                         {{- toYaml . | nindent 24 }}
